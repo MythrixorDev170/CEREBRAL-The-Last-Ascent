@@ -1,0 +1,557 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CEREBRAL: THE LAST ASCENT
+Execution Plan – controlled development passes
+This is the plan for each development pass. No code has been written.
+How the passes are run
+1. One pass per delivery. Each pass changes one area, keeps the build playable, and ends with a published build and a short test report.
+1. Flight lock. Pass 0 wraps the movement code in marker comments and stores its hash. Every automated run re-hashes it, and any change to flight fails the run unless approved.
+1. Automated tests are what can run in the sandbox: syntax checks, scripted tests of game math and state logic with stubbed Three.js objects, the flight-lock hash, and searches through the source for forbidden patterns. The sandbox cannot run a WebGL browser or reach the Three.js CDN.
+1. Visual QA means looking at the published build, or sending screenshots or short recordings. Each pass report lists which checks were run and which are waiting on the project owner.
+1. Assumed decisions: drag is unchanged, the planet stays hidden until decrypt, Cerebral has no speaker label, the HUD layout stays, and the player is a cyborg.
+The passes
+Pass 0 – Safety net (P0)
+	Exact task
+	Add marker comments and a stored hash around the flight code. Move the flight constants into a TUNE block at identical values and the colors into a PAL table. Add a hook to drive the game with scripted inputs, a save version field, and a ?perf=1 overlay. Remove the dead ghost(), jump() and warn2 code.
+
+	Why it is being done
+	Every later pass needs a way to prove it did not change flight, and a consistent palette.
+
+	Existing systems touched
+	Flight, colors throughout, saves, dead code.
+
+	New systems required
+	Flight-lock hash check, TUNE, PAL, test hook, debug overlay.
+
+	Expected player-visible result
+	None, except the optional debug overlay.
+
+	Acceptance criteria
+	The game plays identically. Old saves still load. All colors come from PAL, with the same values as today except those marked for later passes.
+
+	Automated test criteria
+	Syntax check passes. Flight-lock hash matches. The scripted flight run reproduces speed and position curves captured before the change.
+
+	Visual QA criteria
+	Quick side-by-side of the menu, flight and combat against the old build.
+
+	Regression risks
+	A mistyped constant while extracting it (caught by the curve test).
+
+
+Pass 1 – Narrative rules and dialogue manager (P0)
+	Exact task
+	Replace all ECHO/sibling wording with cyborg wording. Remove the speaker label from Cerebral’s lines. Build one dialogue queue where captions start and end with voice playback, with a timer fallback and priority rules. Convert the existing lines to use it.
+
+	Why it is being done
+	Enforces the locked story rules, and every later pass relies on one dialogue path.
+
+	Existing systems touched
+	say, voice, cerebral, the opening text, the log screen, the scientist and unknown-ship messages.
+
+	New systems required
+	Dialogue manager with a line format (text, voice source, duration, priority).
+
+	Expected player-visible result
+	Captions that match the voice, no overlapping lines, and no labeled Cerebral speaker.
+
+	Acceptance criteria
+	No forbidden words remain. Lines never overlap. Captions hide when the voice ends or, without voice, after a length-based time.
+
+	Automated test criteria
+	A scan of the source finds no “ECHO” or “sibling”. Queue unit tests cover ordering, priority interruption, cooldowns, and the timer fallback when the voice never fires an event.
+
+	Visual QA criteria
+	Caption position and readability on desktop and landscape mobile.
+
+	Regression risks
+	Voice events behave differently across browsers. Low risk to gameplay.
+
+
+Pass 2 – Save system v2 (P0)
+	Exact task
+	One autosave, one safe-point save and three manual slots, each with a description and timestamp. Add a migration from the old two-slot format, and add fields for the new story flags.
+
+	Why it is being done
+	Later passes add flags and need a safe way to store them.
+
+	Existing systems touched
+	save, getSaves, begin, the Load panel.
+
+	New systems required
+	Versioned save schema and migration function.
+
+	Expected player-visible result
+	More slots with useful descriptions, such as “Safe point, mission 3”.
+
+	Acceptance criteria
+	Old saves migrate without losing anything. New Game never touches saves until confirmed. Corrupt saves are ignored, not fatal.
+
+	Automated test criteria
+	Round-trip tests, migration tests from a sample old save, and corrupt-data tests.
+
+	Visual QA criteria
+	The Load panel layout and labels.
+
+	Regression risks
+	Losing a player’s progress. A backup copy is kept on the first migration for this reason.
+
+
+Pass 3 – Memory and performance hygiene (P0)
+	Exact task
+	Dispose geometry and materials when enemies and other objects are removed. Pool effect sprites and projectile visuals. Replace temporary vector allocations in the hot loops with reusable scratch objects. Share geometry and materials where parts repeat.
+
+	Why it is being done
+	Enemies currently leak memory when destroyed, and later art passes would make it worse.
+
+	Existing systems touched
+	kill, spawn, burst, shot, upE, upPJ, collision loops, the radar.
+
+	New systems required
+	Object pools, scratch vector set, resource tracker for counts.
+
+	Expected player-visible result
+	Smoother long sessions, no visible change otherwise.
+
+	Acceptance criteria
+	Geometry, material and texture counts are flat over repeated spawn and kill cycles. The flight-lock hash is unchanged.
+
+	Automated test criteria
+	A scripted spawn-and-kill loop checks counts through the overlay hook. Pools are checked for stale state.
+
+	Visual QA criteria
+	Compare effects before and after for any difference.
+
+	Regression risks
+	Pooled objects keeping old colors or scales. A shared material being changed for every instance.
+
+
+Pass 4 – Combat readability and feedback (P0)
+	Exact task
+	Add HUD hit markers (shield and hull in different shades). Color target frames by class from PAL. Add offscreen enemy arrows. Add visual-only recoil using the exponential smoothing formula. Reduce spread only at long range, leaving lead prediction as is.
+
+	Why it is being done
+	The summary lists accuracy and hit feedback as the top feel problems.
+
+	Existing systems touched
+	fire, hitE, lockTxt, proj, the HUD.
+
+	New systems required
+	Hit-marker layer, offscreen indicator layer.
+
+	Expected player-visible result
+	Every hit is seen and heard, and enemies are findable off-screen.
+
+	Acceptance criteria
+	Flight unchanged. Damage values unchanged. Hit markers show for each hit type. Arrows point to the right enemies.
+
+	Automated test criteria
+	Flight-lock hash. Damage and spread tests confirm the values are unchanged except the intended long-range change. Arrow angle tests.
+
+	Visual QA criteria
+	Screenshots of shield hit, hull hit and generator hit, and the arrows with enemies in all directions.
+
+	Regression risks
+	HUD clutter. Recoil visually confusing aim.
+
+
+Pass 5 – First-mission spine and strategic map (P0)
+	Exact task
+	Hide the planet group until a reveal flag is set. The derelict scan yields an encrypted data core. Add a short terminal decrypt interaction scaled by hack and firewall levels, with a recoverable failure path (a side objective to get a firewall chip). On success set the flag, add the Cerebral checkpoint, open the strategic map, and fade the planet in over a few seconds with one line of dialogue. Add the map screen. The final objective points at the checkpoint.
+
+	Why it is being done
+	This is the story spine from the locked design (scan, data, hack, coordinates, map, distant Cerebral).
+
+	Existing systems touched
+	MS, doScan, next, the planet and region setup, radar, save flags.
+
+	New systems required
+	Terminal decrypt screen, strategic map screen, reveal state and fade.
+
+	Expected player-visible result
+	A guided first mission that ends with the first sight of Cerebral far away.
+
+	Acceptance criteria
+	The planet is hidden before the reveal in all cases, including loaded saves that predate it. Failing the decrypt has a clear way forward. The reveal never takes away control.
+
+	Automated test criteria
+	Mission-state tests from fresh and mid-flow loads, reveal-flag persistence, and decrypt difficulty scaling with levels.
+
+	Visual QA criteria
+	The map screen, the terminal, and screenshots of the planet before and after the reveal.
+
+	Regression risks
+	A soft-lock if the decrypt cannot be completed. Mission flags breaking older saves.
+
+
+Pass 6 – Audio core (P0)
+	Exact task
+	Build buses (master, effects, music, voice, horror) with a compressor, driven by the settings sliders. Add 3D panning and per-source distance scales suited to world size. Build the internal voice chain (centered, filtered, light reverb, ducking). Cap simultaneous sounds.
+
+	Why it is being done
+	Spatial sound and an unmistakable internal voice are priorities in the design.
+
+	Existing systems touched
+	initA, tn, nz, SF, snd, voice, settings.
+
+	New systems required
+	Bus graph, listener tracking, voice chain, voice cap and node counter.
+
+	Expected player-visible result
+	Threats can be located by ear, volume falls off with distance, and Cerebral sounds different from everything else.
+
+	Acceptance criteria
+	Sliders control the right buses. Node counts stay flat over a long session.
+
+	Automated test criteria
+	Gain and attenuation math tests, node count tracking under repeated sounds, and the voice cap.
+
+	Visual QA criteria
+	None needed. Listening checks are done by you, with a list of exact things to listen for.
+
+	Regression risks
+	Audio not starting until the first tap on mobile, and the browser’s built-in speech not being processable (handled by the voice chain design).
+
+
+Pass 7 – Settings, HUD options and interactive tutorial (P1)
+	Exact task
+	Add a HUD tab with element toggles, size and opacity, and presets (Full, Combat, Minimal). Make the Display tab actually change shadows, particles and effects. Turn the tutorial into a practice range with dummy drones and checkable steps.
+
+	Why it is being done
+	The summary asks for HUD customization and a hands-on tutorial.
+
+	Existing systems touched
+	setH, applyCfg, tutH, HUD elements, remapping.
+
+	New systems required
+	HUD layout state, tutorial range and step checker.
+
+	Expected player-visible result
+	A customizable HUD and a real tutorial that can be replayed.
+
+	Acceptance criteria
+	Settings persist. The tutorial never writes to saves. Every remapped key works inside it.
+
+	Automated test criteria
+	Settings round-trips, preset application, tutorial step detection from scripted inputs.
+
+	Visual QA criteria
+	Every tab, and the HUD in each preset on desktop and mobile.
+
+	Regression risks
+	HUD elements disappearing with no way to get them back. Always keep a reset button.
+
+
+Pass 8 – Cerebral script, enemy comms, logs and adaptation (P1)
+	Exact task
+	Unlock short intercepted enemy comms only after a scan, some carrying data fragments for the decrypt. Write a tone-stage Cerebral script that reacts to behavior and events, with deliberate silence. Tie scientist logs to places and terminals. Track attack timing, escape direction and missile frequency, each with a capped, decaying response.
+
+	Why it is being done
+	Delivers the locked narrative rules and makes the adaptive AI readable.
+
+	Existing systems touched
+	CL/CX/LOGS, doScan, upE, the adaptation object.
+
+	New systems required
+	Comms table per enemy class, log placements, adaptation caps and decay.
+
+	Expected player-visible result
+	Enemies talk only after being scanned, Cerebral comments on what you actually did, and repeated tactics get answered gradually.
+
+	Acceptance criteria
+	No enemy comms before scanning. Adaptation never exceeds its caps. Lines do not repeat back to back.
+
+	Automated test criteria
+	Comms gating tests, long scripted fights checking caps and decay, and a repeat-line test.
+
+	Visual QA criteria
+	The log screen, caption text, and a recording of one adapted fight.
+
+	Regression risks
+	AI becoming unfair. Caps and decay are the safeguard.
+
+
+Pass 9 – Ship and enemy assets (P1)
+	Exact task
+	Generate a shared hull texture (panel seams, grime, scratches, warning marks) and apply it to all hulls. Rebuild the player ship and the four enemy classes with the layering and silhouettes from the reference sheets and the Color Bible. Add simple distance-based detail levels and small damage-state meshes such as scorches and broken panels. If GLB files are supplied, swap them in behind the same constructors.
+
+	Why it is being done
+	The ships are the most visible quality gap against the references.
+
+	Existing systems touched
+	mkShip, mkEnemy, mkShield, hit and damage effects.
+
+	New systems required
+	Shared texture generator, detail levels, damage-mark pool.
+
+	Expected player-visible result
+	Ships that read as distinct, detailed machines.
+
+	Acceptance criteria
+	Each class is recognizable at mid range. Hit volumes still match the visuals. Triangle budgets from the summary are respected.
+
+	Automated test criteria
+	Triangle counts per class, hit-volume versus bounds checks, and pool limits.
+
+	Visual QA criteria
+	A sheet of each class near, mid and far, shield on and off, at several damage levels.
+
+	Regression risks
+	Silhouettes that vanish when small, and hit detection drifting from visuals.
+
+
+Pass 10 – World density and regions (P1)
+	Exact task
+	Shared asteroid shapes with per-instance variety (scale, rotation, tint, glowing minerals). Build far, mid and near layers with distant planets, capital-ship silhouettes, wreck clusters and drifting foreground debris. Give each of the seven regions its own lighting, colors, architecture, debris and activity. Add a few distant scripted effects.
+
+	Why it is being done
+	The world must stop feeling like empty black space.
+
+	Existing systems touched
+	buildRegions, regionTint, the body list, asteroid generation.
+
+	New systems required
+	Layer groups, region definitions with activity rules.
+
+	Expected player-visible result
+	Each place looks and feels different.
+
+	Acceptance criteria
+	Collisions work for every body. Draw calls and triangle counts stay in budget.
+
+	Automated test criteria
+	Body-count and draw-call tallies, and a collision test against every body type.
+
+	Visual QA criteria
+	A screenshot from each region and from the layers looking outward.
+
+	Regression risks
+	Clutter hiding gameplay, and frame-rate drops.
+
+
+Pass 11 – Interiors and modular kit (P1)
+	Exact task
+	Build the modular kit (walls, floors, pipes, consoles, doors, containers), instanced where repeated. Create one flyable hangar or corridor segment with its own lighting and collision boxes, and a camera wall clamp used only indoors. Add terminal props for the decrypt, plus restrained blood traces, handprints and bodies as environmental storytelling.
+
+	Why it is being done
+	Horror and story need a place to show what happened.
+
+	Existing systems touched
+	buildRegions, the camera block (clamp only), the decrypt terminal.
+
+	New systems required
+	Kit pieces, interior collision set, indoor camera clamp.
+
+	Expected player-visible result
+	One interior where the storytelling lives.
+
+	Acceptance criteria
+	Flying inside at full speed shows no clipping or camera jitter. Exterior camera behavior is unchanged.
+
+	Automated test criteria
+	The flight-lock hash, collision-box tests, and a scripted fly-through with boost and evade checking for escapes.
+
+	Visual QA criteria
+	Screenshots of the interior, the blood storytelling, and the camera near each wall.
+
+	Regression risks
+	The highest-risk pass for camera and collision. The clamp must be additive and scoped to interior volumes.
+
+
+Pass 12 – Horror director (P0 director, P1 events)
+	Exact task
+	Build a tension meter (damage pressure, enemy threat, isolation, event state) that decides when events may fire, with cooldowns and gating. Tune the existing events and add a few new ones (console activating, cockpit reflection, a wreck that moves). Jumpscares stay budgeted and follow long quiet stretches, with reduce-flash support.
+
+	Why it is being done
+	Horror should build on earned tension and not random triggers.
+
+	Existing systems touched
+	horror, ghostShip/upGS, the pressure overlay, audio layers.
+
+	New systems required
+	Tension meter, event scheduler with cooldowns, event log.
+
+	Expected player-visible result
+	Slow escalation with rare, earned scares.
+
+	Acceptance criteria
+	No event inside its cooldown. No back-to-back scares. Reduce-flash honored.
+
+	Automated test criteria
+	A long scripted session logging every event and its gap.
+
+	Visual QA criteria
+	Recordings of a couple of events, checking timing and flash intensity.
+
+	Regression risks
+	Events firing during combat or in the middle of a dialogue line.
+
+
+Pass 13 – Mission spine completion and side content (P0 spine, P1 extras)
+	Exact task
+	Finish the spine: derelict decrypt, ambush, research-facility data recovery, refuge clear and rescue, station defense at the safe point, and the Warden hunt that ends on the Cerebral checkpoint. After the Warden dies, Cerebral makes clear it is not over. Add a small trading post at the refuge (P1). An escort mission is optional (P2).
+
+	Why it is being done
+	Each mission should exercise a different system, with a clear reason.
+
+	Existing systems touched
+	MS, next, enemy spawns, region structures.
+
+	New systems required
+	Research data-recovery mission, station-defense wave logic, trading post.
+
+	Expected player-visible result
+	A full start-to-finish campaign with variety.
+
+	Acceptance criteria
+	Every mission completes from a fresh save and from a mid-mission load.
+
+	Automated test criteria
+	Mission-flow tests for each mission, load-in-the-middle tests, and wave logic.
+
+	Visual QA criteria
+	Objective text and markers for each mission.
+
+	Regression risks
+	Difficulty spikes and flags lost on load.
+
+
+Pass 14 – Salvage and visible upgrades (P1)
+	Exact task
+	Split salvage into engine parts, weapon components, shield parts and firewall chips, each feeding its own upgrades, with old saves converting their generic parts. Make upgrades visible (engine glow, shield shell strength, bar lengths). Data unlocks logs and decrypt keys. Do a balance pass across the spine.
+
+	Why it is being done
+	Upgrades should feel meaningful.
+
+	Existing systems touched
+	up, UPS, dock, kill drops, the ship builder.
+
+	New systems required
+	Salvage categories and their conversion.
+
+	Expected player-visible result
+	Clear spending choices, and upgrades you can see.
+
+	Acceptance criteria
+	A full playthrough affords a meaningful set of upgrades but not all.
+
+	Automated test criteria
+	Save conversion tests, and an earn-versus-cost simulation over the spine.
+
+	Visual QA criteria
+	The safe-point panel and the ship at upgrade levels 0 and 5.
+
+	Regression risks
+	Save conversion, and economy balance.
+
+
+Pass 15 – Opening cinematic (P1)
+	Exact task
+	A short, skippable in-engine opening: black, emergency audio, the research facility showing violence, captioned scientist lines, the cyborg reveal with firewall boot, Cerebral’s attempted connection, then CONTROL RESTORED and launch from the hangar.
+
+	Why it is being done
+	The intro should match the locked story and use real game assets.
+
+	Existing systems touched
+	cine(), the dialogue manager, audio, the Pass 11 set.
+
+	New systems required
+	A shot list for the opening.
+
+	Expected player-visible result
+	A stronger start that hands straight to Pass 5’s first objective.
+
+	Acceptance criteria
+	Skippable at any moment, and control always hands over cleanly.
+
+	Automated test criteria
+	Skip-at-every-second test, and a check that state is identical after skipping and after watching.
+
+	Visual QA criteria
+	Recordings of each shot.
+
+	Regression risks
+	State differences between skipped and watched versions.
+
+
+Pass 16 – Optimization tiers (P0 leaks done earlier, P1 tiers)
+	Exact task
+	Reduce dynamic lights on mobile, add an automatic quality drop based on smoothed frame time, and enforce the pixel-ratio cap. Measure against the budgets and adjust.
+
+	Why it is being done
+	The art and world passes will cost performance.
+
+	Existing systems touched
+	Quality settings, lights, effects, the overlay.
+
+	New systems required
+	Adaptive quality controller.
+
+	Expected player-visible result
+	Steady frame rate on the target devices.
+
+	Acceptance criteria
+	The overlay shows stable counters through a ten-minute soak.
+
+	Automated test criteria
+	Controller behavior on simulated frame times, and counter checks.
+
+	Visual QA criteria
+	Quality tier comparison screenshots.
+
+	Regression risks
+	Visible quality popping as tiers change. Smoothing and hysteresis address this.
+
+
+Pass 17 – Final QA, polish and handoff (P0)
+	Exact task
+	Run the full checklist, the screenshot sheet and the console check. Do transition timing and copy edits, add accessibility options, and stamp the version and a known-issues list. Package the handoff for Jabali: asset bible, color bible, tuning constants, event catalog, dialogue script, state diagram and QA results.
+
+	Why it is being done
+	This freezes the reference build and makes it reproducible.
+
+	Existing systems touched
+	All, for fixes only.
+
+	New systems required
+	None beyond the handoff documents.
+
+	Expected player-visible result
+	A finished build.
+
+	Acceptance criteria
+	Every checklist item has a recorded pass or a listed known issue.
+
+	Automated test criteria
+	The whole suite, with the flight-lock hash and zero console errors.
+
+	Visual QA criteria
+	The full screenshot sheet from the summary.
+
+	Regression risks
+	Late fixes breaking earlier passes, so the full suite is re-run after each fix.
+
+
+Dependencies and order
+1. Critical path: 0, then 1, then 2, then 5, then 6, then 7, then 17.
+1. After Pass 0: Passes 3 and 4 can run in either order.
+1. Passes 9, 10 and 11 follow Pass 3. Pass 11 also needs Pass 10’s lighting work.
+1. Passes 8, 12 and 13 follow Passes 5 and 6.
+1. Cut line: if time runs short, drop the escort mission, the trading post and extra ghost-ship variants first. The interactive tutorial and the hangar interior go next. Never cut Passes 0 to 6 or the final QA.
+First pass to perform: Pass 0
+Pass 0 comes first because nothing in it changes how the game plays. It gives every later pass a flight-lock hash and a scripted input hook to prove flight did not change, plus the shared PAL and TUNE tables and a versioned save. It also removes the dead code, so later passes start from a clean file.
+Before starting, confirm whether any of the five assumed decisions should change, in particular that flight drag stays exactly as it is.
+CEREBRAL: THE LAST ASCENT – Execution Plan   |   Page 

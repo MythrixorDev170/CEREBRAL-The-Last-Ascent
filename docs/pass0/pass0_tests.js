@@ -1,0 +1,110 @@
+'use strict';
+// PASS 0 test suite. Runs the REAL game script headlessly in a vm with real three.js math (npm three@0.128.0) and stubbed DOM/WebGL/audio.
+// Usage: node pass0_tests.js capture | seal | test      (THREE_PATH=/path/to/three/build/three.js to override)
+const fs=require('fs'),vm=require('vm'),path=require('path'),cp=require('child_process'),crypto=require('crypto');
+const D=__dirname,ROOT=path.join(D,'..'),BASE=path.join(D,'baseline_cerebral_pre_pass0.html'),MOD=path.join(ROOT,'cerebral.html'),TOL=1e-9;
+const THREE=(()=>{for(const c of [process.env.THREE_PATH,path.join(D,'node_modules/three/build/three.js'),'/tmp/p0/node_modules/three/build/three.js']){try{if(c)return require(c)}catch(e){}}throw new Error('three@0.128.0 not found (npm i in pass0/)')})();
+const dc=require('./deadcode.js');
+const stub=()=>new Proxy(function(){},{get(t,p){if(p===Symbol.toPrimitive)return()=>0;if(p==='then')return undefined;if(p===Symbol.iterator)return function*(){};return stub()},set(){return true},apply(){return stub()},construct(){return stub()}});
+const extract=h=>[...h.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
+function loadSrc(SRC,o={}){const els={},created=[],appended=[],hand={},store=new Map(Object.entries(o.ls||{})),errors=[];const q=[];let clk=0;const hudLog={};const recEl=id=>{const sty=new Proxy({},{set(t_,p,v){hudLog[id+'.style.'+p]=v;return true},get(){return stub()}});return new Proxy(function(){},{get(t_,p){if(p==='style')return sty;if(p===Symbol.toPrimitive)return()=>0;if(p==='then')return undefined;return stub()},set(t_,p,v){hudLog[id+'.'+p]=v;return true},apply(){return stub()}})};
+ const T3=Object.assign({},THREE,{WebGLRenderer:class{constructor(){this.info={render:{calls:0,triangles:0},memory:{geometries:0,textures:0}};this.shadowMap={enabled:false}}setPixelRatio(){}setSize(){}render(){}}});
+ const doc={getElementById:id=>els[id]||(els[id]=recEl(id)),createElement:t=>{if(t==='pre'){const e={style:{},tag:t};created.push(e);return e}return stub()},body:{appendChild:e=>appended.push(e)},documentElement:{style:{setProperty(){}}},currentScript:{textContent:SRC},addEventListener(){},fullscreenElement:null};
+ const ctx={THREE:T3,document:doc,location:{search:o.search||''},localStorage:{getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)},navigator:{},innerWidth:1280,innerHeight:720,devicePixelRatio:1,matchMedia:()=>({matches:false}),requestAnimationFrame:f=>{q.push(f);return q.length},performance:{now:()=>0},setTimeout:()=>0,clearTimeout(){},console:{log(){},warn:(...a)=>errors.push('warn:'+a.join(' ')),error:(...a)=>errors.push('error:'+a.join(' '))},addEventListener:(t,f)=>{(hand[t]=hand[t]||[]).push(f)}};
+ ctx.window=ctx;vm.createContext(ctx);
+ vm.runInContext('Math.random=(function(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}})('+(o.seed||20260930)+')',ctx);
+ vm.runInContext(SRC,ctx,{filename:'game.js'});
+ return {ctx,run:c=>vm.runInContext(c,ctx),frames:(n,dt=16.667)=>{for(let i=0;i<n;i++){clk+=dt;q.splice(0).forEach(f=>f(clk))}},created,appended,errors,store,hud:hudLog};}
+const load=(f,o)=>loadSrc(extract(fs.readFileSync(f,'utf8')),o);
+// reference driver: uses only the game's own action pathway (press/release, mo, mv) and the real play(dt)
+function driverFn(script,o){o=o||{};const dt=o.dt||1/60,every=o.every||6,out=[],s0=S,sv=[CT,HZ,DFt],bodies=B.splice(0);
+ try{(script.bodies||[]).forEach(b=>B.push({p:V(...b.p),r:b.r,v:null,t:b.t||'rock',st:1}));
+  go('play');clearE();resetP();CT=HZ=DFt=1e9;Object.keys(K).forEach(k=>K[k]=0);mo.x=mo.y=mv.x=mv.y=0;P.sx=P.sy=0;
+  const ini=script.init||{};P.vel.set(...(ini.vel||[0,0,0]));pl.position.set(...(ini.pos||[0,0,0]));pl.quaternion.identity();pm.rotation.set(0,0,0);
+  P.en=100;P.cd=0;P.bf=0;P.bo=0;P.ev=0;P.ec=0;P.shk=0;P.cor=0;P.hu=P.mh;P.sh=smax();P.lk=null;P.dg=0;P.t=0;P.fc=0;
+  cam.position.set(pl.position.x,pl.position.y+7,pl.position.z+30);cam.quaternion.identity();
+  const rec=f=>out.push({t:f*dt,p:pl.position.toArray(),v:P.vel.toArray(),sp:P.vel.length(),en:P.en,bf:P.bf,cd:P.cd,ev:P.ev,ec:P.ec,q:pl.quaternion.toArray(),cam:cam.position.toArray(),fov:cam.fov});
+  let held=[],f=0;rec(0);
+  for(const s_ of script.steps){const keys=s_.keys||[];held.filter(a=>!keys.includes(a)).forEach(release);keys.filter(a=>!held.includes(a)).forEach(press);held=keys.slice();
+   mo.x=(s_.mo||[0,0])[0];mo.y=(s_.mo||[0,0])[1];mv.x=(s_.mv||[0,0])[0];mv.y=(s_.mv||[0,0])[1];(s_.press||[]).forEach(press);
+   const n=Math.round(s_.d/dt);for(let i=0;i<n;i++){play(dt);f++;if(f%every===0)rec(f)}}
+  held.forEach(release);rec(f);
+ }finally{B.length=0;bodies.forEach(b=>B.push(b));[CT,HZ,DFt]=sv;go(s0)}
+ return {dt,every,samples:out,frames:out.length}}
+const SCRIPTS={
+ idle_rest:{steps:[{d:2,keys:[]}]},
+ idle_coast:{init:{vel:[0,0,-60]},steps:[{d:4,keys:[]}]},
+ forward:{steps:[{d:5,keys:['f']}]},
+ forward_boost:{steps:[{d:4,keys:['f','boost']},{d:2.5,keys:[]}]},
+ reverse_brake:{init:{vel:[0,0,-70]},steps:[{d:3,keys:['bk']}]},
+ lateral:{steps:[{d:2,keys:['r']},{d:2,keys:['l']},{d:1.5,keys:[]}]},
+ combined:{steps:[{d:1.5,keys:['f','r'],mo:[.6,-.2]},{d:1.5,keys:['f','boost','r'],mo:[.6,-.2]},{d:.2,keys:['f','boost'],mo:[-.4,.3],press:['evade']},{d:2,keys:['f','l'],mo:[-.5,.4]}]},
+ evade:{steps:[{d:1.5,keys:['f']},{d:.1,keys:['f'],press:['evade']},{d:1.5,keys:['f']}]},
+ steer_sweep:{steps:[{d:1,keys:['f'],mo:[1,0]},{d:1,keys:['f'],mo:[0,1]},{d:1,keys:['f'],mo:[-.3,-1]},{d:1,keys:['f'],mo:[0,0]}]},
+ touch_stick_sprint:{steps:[{d:2,keys:['f','sp'],mv:[.5,-1],mo:[.2,.1]},{d:2,keys:[],mv:[0,0]}]},
+ collision_rock:{bodies:[{p:[0,0,-150],r:20,t:'rock'}],steps:[{d:5,keys:['f','boost']}]},
+ collision_metal:{bodies:[{p:[0,0,-150],r:20,t:'metal'}],steps:[{d:5,keys:['f','boost']}]},
+ world_bound:{init:{pos:[0,0,-2850]},steps:[{d:4,keys:['f','boost']}]}};
+const runDriver=(file,name)=>{const l=load(file);return JSON.parse(JSON.stringify(l.run('('+driverFn.toString()+')('+JSON.stringify(SCRIPTS[name])+',{})')))};
+function maxDiff(a,b){if(typeof a==='number'&&typeof b==='number')return a===b?0:Math.abs(a-b);if(Array.isArray(a)&&Array.isArray(b)){if(a.length!==b.length)return Infinity;let m=0;for(let i=0;i<a.length;i++)m=Math.max(m,maxDiff(a[i],b[i]));return m}if(a&&b&&typeof a==='object'){let m=0;for(const k of new Set([...Object.keys(a),...Object.keys(b)]))m=Math.max(m,maxDiff(a[k],b[k]));return m}return a===b?0:Infinity}
+const mode=process.argv[2];
+if(mode==='capture'){const out={tolerance:TOL,source:'baseline_cerebral_pre_pass0.html',sha256:crypto.createHash('sha256').update(fs.readFileSync(BASE)).digest('hex'),scripts:{}};
+ for(const n of Object.keys(SCRIPTS)){const r=runDriver(BASE,n);out.scripts[n]=r;const f=r.samples[r.samples.length-1];console.log(n.padEnd(20),'frames',r.frames,'final pos',f.p.map(v=>v.toFixed(2)).join(','),'speed',f.sp.toFixed(3),'energy',f.en.toFixed(2))}
+ fs.writeFileSync(path.join(D,'baseline_curves.json'),JSON.stringify(out));console.log('wrote baseline_curves.json');process.exit(0)}
+if(mode==='seal'){const a=load(MOD),h=a.run('flightLockCompute(SRC).hash');let s=fs.readFileSync(MOD,'utf8');s=s.replace(/FLIGHT_LOCK_HASH='[^']*'/,"FLIGHT_LOCK_HASH='"+h+"'");fs.writeFileSync(MOD,s);console.log('SEALED',h,'regions',a.run('JSON.stringify(flightLockCompute(SRC).names)'));process.exit(0)}
+// ------------------------------ TEST MODE ------------------------------
+const R=[];const T=(name,fn)=>{try{const d=fn();R.push({name,pass:d.pass!==false,detail:d.detail||''})}catch(e){R.push({name,pass:false,detail:'EXC '+(e.stack||e.message).split('\n').slice(0,2).join(' | ')})}};
+const modHtml=fs.readFileSync(MOD,'utf8'),SRC=extract(modHtml),baseSRC=extract(fs.readFileSync(BASE,'utf8')),curves=JSON.parse(fs.readFileSync(path.join(D,'baseline_curves.json'),'utf8'));
+T('01 syntax: vm.Script + node --check',()=>{new vm.Script(SRC);fs.writeFileSync('/tmp/p0_game.js',SRC);cp.execSync('node --check /tmp/p0_game.js');return {detail:SRC.length+' chars'}});
+T('02 existing systems still present',()=>{const need=['function play(','function evade(','function fire(','function miss(','function scan(','function hack(','function doScan(','function save(','function getSaves(','function dock(','const MS=[','function mkShip(','function mkEnemy(','function buildRegions(','function ghostShip(','function cerebral(','function upE(','function hitE(','function logP(','function radar(','function regionTint(','function applyCfg(','const LOGS=['];const miss=need.filter(n=>!SRC.includes(n));return {pass:!miss.length,detail:miss.length?'missing '+miss:need.length+' markers found'}});
+const A=load(MOD);
+T('03 flight lock verifies (hash matches)',()=>{const s=JSON.parse(A.run('JSON.stringify(flightLockStatus())'));return {pass:s.ok===true&&s.regions.length===7,detail:'hash '+s.hash+' regions '+s.regions.join(',')}});
+const mut=(a,b)=>{if(!SRC.includes(a))throw new Error('mutation anchor missing: '+a);return SRC.replace(a,b)},lk=s=>JSON.parse(loadSrc(s).run('JSON.stringify(flightLockStatus())')).ok;
+T('04 lock FAILS on: TUNE drag .55->.56',()=>({pass:lk(mut('drag:.55','drag:.56'))===false}));
+T('04 lock FAILS on: movement physics edit',()=>({pass:lk(mut('Math.pow(TUNE.drag,dt)','Math.pow(TUNE.drag,dt*1.01)'))===false}));
+T('04 lock FAILS on: marker removed',()=>({pass:lk(mut('// === FLIGHT LOCK BEGIN: camera ===\n',''))===false}));
+T('04 lock FAILS on: steering helper ss() edited',()=>({pass:lk(mut('return x*x*(3-2*x)}','return x*x*(3-2*x)*1.0001}'))===false}));
+T('04 lock FAILS on: default WASD binding edited',()=>({pass:lk(mut("f:'KeyW'","f:'KeyZ'"))===false}));
+T('04 lock FAILS on: evade impulse edit',()=>({pass:lk(mut('*TUNE.evadeImpulse','*TUNE.evadeImpulse*2'))===false}));
+T('04 control: non-flight edit does NOT trip lock',()=>({pass:lk(mut("'ENEMY LOCK'","'ENEMY LOCKED'"))===true}));
+const EXP={mouseZone:.28,yawRate:2.2,pitchRate:1.8,dead:.07,deadSpan:.93,crvLin:.3,crvQuad:.7,touchStick:55,touchDead:.15,touchAim:80,bankRoll:.35,bankPitch:.1,bankRate:6,enMax:100,enMin:1,enResume:30,energyRegen:14,boostDrain:26,bfRate:4,accel:60,thrStep:.1,boostAccel:1.4,sprintAccel:1.2,maxSpeed:90,spdStep:.1,warpStep:.15,sprintMax:1.15,boostThrust:.5,strafe:.6,drag:.55,brake:.02,clampRate:3,worldRadius:2900,boundBounce:.5,shipRadius:6,restRock:.25,restMetal:.45,impactMin:6,impactDmgFree:10,impactDmgScale:.7,impactShake:.3,evadeMinEn:10,evadeCost:10,evadeCd:1.4,evadeInv:.35,evadeSide:.3,evadeImpulse:75,camUp:7,camBack:30,camSpeedBack:.06,camFollow:9,camTurn:8,fov:70,fovBoost:13,shakeScale:.6,shakeDecay:1.5};
+const TUNE=JSON.parse(A.run('JSON.stringify(TUNE)')),PALo=JSON.parse(A.run('JSON.stringify(PAL)'));
+T('05 TUNE values identical to original constants',()=>{const bad=Object.keys(EXP).filter(k=>TUNE[k]!==EXP[k]).concat(Object.keys(TUNE).filter(k=>!(k in EXP)));return {pass:!bad.length,detail:Object.keys(TUNE).length+' constants; mismatches: '+JSON.stringify(bad)}});
+// source-level equivalence: modified flight regions with TUNE/PAL substituted back == original flight source
+const norm=t=>t.replace(/(?<![\w$.])(\d*\.?\d+(?:e[+-]?\d+)?)/gi,m=>String(Number(m)));
+const unsub=t=>t.replace(/TUNE\.(\w+)/g,(m,k)=>String(TUNE[k])).replace(/PAL\.(\w+)/g,(m,k)=>typeof PALo[k]==='number'?'0x'+PALo[k].toString(16).padStart(6,'0'):"'"+PALo[k]+"'");
+function modRegions(js){const L=js.split('\n'),o={};let cur=null,buf=[];for(const l of L){let m;if((m=l.match(/^\/\/ === FLIGHT LOCK BEGIN: (\S+) ===$/))){cur=m[1];buf=[]}else if(l==='// === FLIGHT LOCK END ==='){o[cur]=buf.join('\n');cur=null}else if(cur)buf.push(l)}return o}
+function baseRegions(js){const L=js.split('\n'),o={};const f=p=>L.findIndex(l=>l.startsWith(p));
+ o.evade=L[f('function evade(){')];o['mouse-steering']=L[f("addEventListener('mousemove'")];const t=f(" tc.addEventListener('touchmove'");o['touch-stick']=L[t]+'\n'+L[t+1];o['steering-curve']=L[f('const crv=')];
+ const a=f('function play(dt){P.t+=dt;')+1,b=f(' P.fc-=dt;if(K.fire&&P.fc<=0)');o.movement=L.slice(a,b).join('\n');
+ const c=f(' /* camera */')+1,d=f(' cam.fov='),cl_=L[d];o.camera=L.slice(c,d).join('\n')+'\n'+cl_.slice(0,cl_.indexOf('EL.intensity='));return o}
+T('06 flight source token-identical to original (TUNE/PAL substituted back)',()=>{const m=modRegions(SRC),b=baseRegions(baseSRC),bad=[];for(const k of Object.keys(b))if(norm(unsub(m[k]||''))!==norm(b[k]))bad.push(k);return {pass:!bad.length&&Object.keys(m).length===7,detail:'regions '+Object.keys(m).join(',')+(bad.length?' MISMATCH '+bad:'')}});
+const cur={};let worst=0;
+for(const n of Object.keys(SCRIPTS))T('07 flight curve vs baseline: '+n,()=>{const r=runDriver(MOD,n);cur[n]=r;const d=maxDiff(r,curves.scripts[n]);worst=Math.max(worst,d);return {pass:d<=TOL,detail:'max abs diff '+d+' (tol '+TOL+'), '+r.frames+' samples'}});
+for(const n of Object.keys(SCRIPTS))T('08 in-game test hook == reference driver: '+n,()=>{const l=load(MOD);const r=JSON.parse(JSON.stringify(l.run('CER_TEST.run('+JSON.stringify(SCRIPTS[n])+',{})')));const d=maxDiff(r,cur[n]);return {pass:d===0,detail:'max abs diff '+d}});
+T('09 hook uses TUNE-driven camera + restores game state',()=>{const l=load(MOD);const s=l.run("(()=>{const s0=S;CER_TEST.run({steps:[{d:.5,keys:['f']}]},{seed:7});return S===s0&&!Object.values(K).some(v=>v)})()");return {pass:s===true}});
+const dump="(function(){const o=[];sc.traverse(n=>{const m=n.material;o.push([n.type,n.position.toArray().map(v=>+v.toFixed(5)),n.scale.toArray().map(v=>+v.toFixed(5)),m&&m.color?m.color.getHex():-1,m&&m.emissive?m.emissive.getHex():-1,m&&m.opacity!==undefined?m.opacity:-1,n.intensity!==undefined?n.intensity:-1])});return JSON.stringify({o,fog:sc.fog.color.getHex(),bg:sc.background.getHex(),REG:REG.map(r=>[r.a,r.f,r.n]),EK:EK})})()";
+T('10 PAL: scene graph colors/materials/lights identical to baseline',()=>{const x=load(BASE).run(dump),y=A.run(dump);return {pass:x===y,detail:JSON.parse(y).o.length+' scene objects compared'}});
+T('11 PAL: every replaced literal accounted for, none left behind',()=>{const cnt=(s,re)=>(s.match(re)||[]).length;let bad=[];for(const [k,v] of Object.entries(PALo)){if(typeof v!=='number')continue;const hex='0x'+v.toString(16).padStart(6,'0'),b=cnt(baseSRC,new RegExp('\\b'+hex+'\\b','gi')),refs=cnt(SRC,new RegExp('PAL\\.'+k+'\\b','g')),left=cnt(SRC.split('const PAL=')[1].split('\n').slice(1).join('\n'),new RegExp('\\b'+hex+'\\b','gi'));if(left||refs===0)bad.push(k+':'+refs+'/'+left)}return {pass:!bad.length,detail:Object.keys(PALo).length+' PAL entries; problems '+JSON.stringify(bad)}});
+const legacy={G:{cr:120,pt:3,dta:2,m:2,f:{ds:1,resc:0}},up:{spd:1,thr:0,acc:0,dmg:2,shd:1,fw:0,hk:1,wp:0},st:{dd:.2,prim:40,mis:3,hk:2,dist:310,n:.2},ts:1700000000000};
+T('12 legacy (unversioned) save loads in modified AND baseline',()=>{const o={ls:{cer_s1:JSON.stringify(legacy)}};const f=l=>JSON.parse(l.run('JSON.stringify(getSaves().map(s=>({i:s.i,m:s.d.G.m,cr:s.d.G.cr,v:s.d.saveVersion})))'));const a=f(load(MOD,o)),b=f(load(BASE,o));const l=load(MOD,o);l.run('begin(false,getSaves()[0].d)');const st=l.run('G.m+","+G.cr+","+up.dmg+","+S');return {pass:a.length===1&&a[0].m===2&&a[0].v===undefined&&b.length===1&&st==='2,120,2,load',detail:'saves '+JSON.stringify(a)+' state after begin '+st}});
+T('13 new save writes saveVersion:1 and round-trips',()=>{const l=load(MOD,{ls:{cer_s1:JSON.stringify(legacy)}});l.run('begin(false,getSaves()[0].d);save(0)');const d=JSON.parse(l.store.get('cer_s0'));const g=JSON.parse(l.run('JSON.stringify(getSaves().map(s=>s.i))'));return {pass:d.saveVersion===1&&d.G.m===2&&d.up&&d.st&&typeof d.ts==='number'&&g.length===2,detail:'keys '+Object.keys(d).join(',')+' slots '+g}});
+T('14 future-version and corrupt saves are ignored safely',()=>{const l=load(MOD,{ls:{cer_s0:JSON.stringify({...legacy,saveVersion:99}),cer_s1:'{bad json'}});return {pass:JSON.parse(l.run('JSON.stringify(getSaves())')).length===0}});
+T('15 New Game does not touch existing saves',()=>{const l=load(MOD,{ls:{cer_s1:JSON.stringify(legacy)}});const before=l.store.get('cer_s1');l.run('begin(true)');l.frames(5);return {pass:l.store.get('cer_s1')===before&&l.store.size===1}});
+T('16 ?perf=1 shows overlay with required fields',()=>{const l=load(MOD,{search:'?perf=1'});l.frames(40);const e=l.appended[0];const t=e&&e.textContent||'';const need=['FPS','enemies','projectiles','fx','FLIGHT LOCK: OK','save schema v1','region','gl calls'];const miss=need.filter(n=>!t.includes(n));return {pass:l.appended.length===1&&e.id==='perf'&&!miss.length,detail:miss.length?'missing '+miss:t.split('\n').join(' | ')}});
+T('17 normal startup: no overlay, nothing created',()=>{const l=load(MOD,{search:''});l.frames(40);return {pass:l.appended.length===0&&l.created.length===0}});
+T('20 forbidden-pattern scan',()=>{const pats={'eval(':/\beval\s*\(/,'new Function(':/new Function\(/,'document.write':/document\.write/,'debugger':/\bdebugger\b/,'alert(':/\balert\(/,'unguarded import()':/\bimport\s*\(/};const hit=Object.keys(pats).filter(k=>pats[k].test(SRC));const scripts=[...modHtml.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);const regs=modRegions(SRC),rnd=Object.values(regs).join('\n').includes('Math.random');const hosts=scripts.filter(s=>!s.startsWith('https://cdnjs.cloudflare.com/'));return {pass:!hit.length&&!hosts.length&&!rnd,detail:'patterns '+JSON.stringify(hit)+' foreign scripts '+JSON.stringify(hosts)+' Math.random in flight regions '+rnd}});
+T('21 runtime smoke: menu -> loading -> opening -> play -> combat (headless, no GL)',()=>{const l=load(MOD);l.frames(60);l.run('begin(true)');l.frames(1000);const st=l.run('S');if(st!=='play')return {pass:false,detail:'state '+st};l.run("spawn('drone',3,pl.position,250);spawn('elite',1,pl.position,320);K.f=1;K.fire=1;mo.x=.3");l.frames(900);l.run("K.f=0;K.fire=0;press('scan');press('hack');press('evade');miss()");l.frames(120);return {pass:l.errors.length===0,detail:'state '+l.run('S')+' enemies '+l.run('E.length')+' console issues '+JSON.stringify(l.errors)}});
+T('18a dead-code detector ignores comments, strings and templates (self-test)',()=>{const s='const a="ghost()";/* ghost() */ // ghost()\nconst t=`ghost()`;function ghost(){}\nconst o={ghost:1};o.ghost;';const r=dc.analyze(s,['ghost']).ghost,live=dc.analyze(s+'\nghost();',['ghost']).ghost;return {pass:r.declared.length===1&&r.refs.length===0&&live.refs.length===1,detail:'inert text: '+JSON.stringify(r)+'; with a real call: '+JSON.stringify(live)}});
+T('18b baseline: ghost() and jump() have NO executable references; warn2() has a live call',()=>{const a=dc.analyze(baseSRC,['ghost','jump','warn2']);return {pass:a.ghost.declared.length===1&&a.ghost.refs.length===0&&a.jump.declared.length===1&&a.jump.refs.length===0&&a.warn2.declared.length===1&&a.warn2.refs.length===1,detail:JSON.stringify(a)}});
+T('18c modified: ghost()/jump() removed completely; warn2() kept with its call',()=>{const a=dc.analyze(SRC,['ghost','jump','warn2']);return {pass:a.ghost.declared.length+a.ghost.refs.length+a.jump.declared.length+a.jump.refs.length===0&&a.warn2.declared.length===1&&a.warn2.refs.length===1,detail:JSON.stringify(a)}});
+const baseHtml=fs.readFileSync(BASE,'utf8'),facts=JSON.parse(fs.readFileSync(path.join(D,'baseline_facts.json'),'utf8'));
+T('22a build integrity: baseline matches recorded hashes; seal present',()=>{const sh=crypto.createHash('sha256').update(baseSRC.slice(1)).digest('hex');return {pass:sh===facts.sha256_baseline_script&&crypto.createHash('sha256').update(fs.readFileSync(BASE)).digest('hex')===curves.sha256&&!SRC.includes('__SEAL__')&&/FLIGHT_LOCK_HASH='[0-9a-f]{10,}'/.test(SRC),detail:'baseline script sha256 '+sh.slice(0,16)+'…'}});
+T('22b build integrity: HTML/CSS/DOM markup outside the script is byte-identical to baseline',()=>({pass:modHtml.replace(SRC,'')===baseHtml.replace(baseSRC,'')}));
+T('22c build integrity: rebuilding from baseline reproduces cerebral.html (modulo seal)',()=>{cp.execSync('python3 '+JSON.stringify(path.join(D,'pass0_build.py'))+' --out /tmp/p0_rebuild.html --no-docs',{stdio:'pipe'});const n=h=>h.replace(/FLIGHT_LOCK_HASH='[^']*'/,"FLIGHT_LOCK_HASH='X'");return {pass:n(fs.readFileSync('/tmp/p0_rebuild.html','utf8'))===n(modHtml)}});
+function snaps(file){const l=load(file),o={},sn=n=>{o[n]={scene:l.run(dump),hud:JSON.stringify(l.hud)}};l.frames(60);sn('main menu');l.run('begin(true)');l.frames(100);sn('loading screen');l.frames(1000);sn('normal flight');l.run("spawn('drone',3,pl.position,250);spawn('elite',1,pl.position,320);K.f=1;K.fire=1;mo.x=.3");l.frames(300);sn('combat + HUD');return o}
+T('23 visual-state regression vs baseline (scene graph, materials, lights, HUD element values): menu / loading / flight / combat',()=>{const a=snaps(BASE),b=snaps(MOD),bad=Object.keys(a).filter(k=>a[k].scene!==b[k].scene||a[k].hud!==b[k].hud);return {pass:!bad.length,detail:Object.keys(a).join(', ')+(bad.length?' DIFFER: '+bad:' identical')+'; HUD keys '+Object.keys(JSON.parse(a['combat + HUD'].hud)).length}});
+let ok=0;for(const r of R){if(r.pass)ok++;console.log((r.pass?'PASS ':'FAIL ')+r.name+(r.detail?'  — '+r.detail:''))}
+console.log('\n'+ok+'/'+R.length+' passed; worst flight-curve difference vs baseline: '+worst);
+{const out=JSON.stringify({status:ok===R.length?'PASS':'FAIL',passed:ok,total:R.length,worstCurveDiff:worst,tolerance:TOL,flightLock:JSON.parse(A.run('JSON.stringify(flightLockStatus())')),saveSchemaVersion:JSON.parse(A.run('JSON.stringify(CER_TEST.saveVersion)')),visualQA:'Headless equivalence only (no browser/GPU in sandbox): scene graph + materials + lights + HUD element writes compared with baseline at menu, loading, flight and combat; no pixel screenshots taken.',results:R},null,1);fs.writeFileSync(path.join(D,'pass0_results.json'),out);fs.writeFileSync(path.join(ROOT,'pass0_results.json'),out)}
+process.exit(ok===R.length?0:1);

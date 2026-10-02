@@ -1,0 +1,1 @@
+{"name":"cerebral-pass0-safety-net","private":true,"scripts":{"build":"python3 pass0_build.py","seal":"node pass0_tests.js seal","test":"node pass0_tests.js test","capture-baseline":"node pass0_tests.js capture"},"devDependencies":{"three":"0.128.0","acorn":"^8.11.0"}}

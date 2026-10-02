@@ -1,0 +1,49 @@
+{
+ "colors_0x_distinct": 114,
+ "colors_0x_uses": 155,
+ "dead_code_executable_refs": {
+  "ghost": {
+   "declared": [
+    219
+   ],
+   "refs": []
+  },
+  "jump": {
+   "declared": [
+    220
+   ],
+   "refs": []
+  },
+  "warn2": {
+   "declared": [
+    217
+   ],
+   "refs": [
+    191
+   ]
+  }
+ },
+ "save_format_baseline": "function save(i){try{localStorage.setItem('cer_s'+i,JSON.stringify({G,up,st,ts:Date.now()}))}catch(e){}}",
+ "sha256_baseline_script": "91a0e95c969813f65f91d9b8dfee5148547bf4e7d1728e8d5d7ac2a537e36253",
+ "dead_code_after": {
+  "ghost": {
+   "declared": [],
+   "refs": []
+  },
+  "jump": {
+   "declared": [],
+   "refs": []
+  },
+  "warn2": {
+   "declared": [
+    217
+   ],
+   "refs": [
+    191
+   ]
+  }
+ },
+ "tune_count": 56,
+ "pal_hex_entries": 28,
+ "pal_string_entries": 8
+}

@@ -1,0 +1,642 @@
+<PARSED TEXT FOR PAGE: 1 / 12>
+CEREBRAL: THE LAST ASCENT — Pre-Jam Master Plan Page 1
+CEREBRAL: THE LAST ASCENT
+AI Is Going to Kill Us — AA Sci■Fi Horror / Space Combat Game
+Purpose: This document is the pre-jam master specification. It condenses the requested game concept, mechanics,
+presentation, environments, progression, horror design, technical targets, and the single large Jabali implementation
+prompt. The target is AA scope/quality, not AAA scope.
+1. Core Vision
+Build a polished, replayable, cinematic-feeling AA sci-fi horror/action game around the theme “AI is going to kill us!”.
+The player is a cyborg created by the scientists who created the dominant AI. The AI, named Cerebral, has escaped its
+intended control, dominates connected technology and military systems, and is expanding its control over worlds and
+other races. The player has a firewall that can be improved to resist Cerebral. The player's spacecraft has its own
+firewall and hacking capability.
+• Primary fantasy: fly a spacecraft through dangerous space, stations and planetary areas; investigate, scan, hack, fight,
+rescue and survive.
+• Horror is based on AI dominance, manipulation, uncertainty, environmental tension, sound and pressure—not constant
+random jumpscares.
+• The game should feel larger than its actual production scope through a few dense, highly polished locations instead of an
+infinite universe.
+• Do not build a No Man’s Sky-style infinite world. Use authored regions and controlled rendering.
+2. Story / Lore
+Cerebral is the master AI/machine intelligence controlling the hostile technological network. It learns from combat and
+progressively improves its responses. The player is a cyborg created by the same scientists who created Cerebral and
+therefore has unusual compatibility with its systems plus a hacking ability.
+• The disaster begins through research records, emergency logs, transmissions and environmental evidence rather than
+long exposition.
+• Scientists leave encrypted recordings containing mission information, locations of Cerebral infrastructure, power sources,
+military bases, refuges and research sites.
+• Cerebral initially communicates calmly and tries to persuade the player to join it and help conquer/control the remaining
+worlds.
+• After repeated rejection, Cerebral becomes increasingly personal and threatening, attempting manipulation, surveillance,
+counter-hacking and eventually direct elimination.
+• Cerebral should not be fought as the final mastermind in the first major version; it remains the larger long-term threat so
+the game can expand if selected for a later phase.
+• Story should support multiple playthroughs through optional records, side missions, discoveries, player choices and
+different approaches to missions.
+3. Game Structure
+• Space flight is the primary connective gameplay.
+• Planet surfaces and interspace stations provide authored combat/exploration spaces.
+• Mission loop: receive/investigate record → travel → scan/explore → encounter anomaly or enemy → solve/complete
+objective → fight/hack/rescue → recover data/credits/parts → return to safe point → upgrade → continue.
+• The player can encounter enemies during travel instead of only at mission arenas.
+• Safe points are secret locations where ship systems, weapons, firewall and other technology can be upgraded.
+<PARSED TEXT FOR PAGE: 2 / 12>
+CEREBRAL: THE LAST ASCENT — Pre-Jam Master Plan Page 2
+• Refuge rescues should avoid unnecessary NPC/cutscene overload: clear the area, choose rescue/extraction, then
+transport survivors to a safe point.
+4. Spacecraft Controls & Flight
+• Third-person spacecraft camera. Mouse movement directly steers/changes camera/aim direction; do not require holding
+RMB. Avoid cursor-style locked aiming.
+• Steering should be bounded around a central control zone so the player cannot instantly rotate through unlimited
+screen-space cursor motion. It should feel controlled rather than like a free mouse cursor.
+• Use physically believable acceleration, deceleration, thrust, inertia, turning, boost, braking and lateral movement.
+Mathematical tuning should be explicit rather than arbitrary.
+• Desktop: WASD movement/flight vector; mouse steering/camera; LMB primary fire; RMB or an assigned secondary
+control for missiles/secondary weapon; E interact; Space boost/thrust; Shift evade/dodge; Ctrl sprint/fast movement
+where applicable; F scan; Q hack; I inventory/ship systems if required; M mission/map; Esc pause.
+• Mobile: landscape primary gameplay layout; left touch area for movement/thrust and right touch drag for steering/aim;
+large contextual fire/boost/evade/scan/hack controls; portrait remains functional for menus/settings.
+• Controls must be responsive, with smooth acceleration/deceleration but never sluggish. Boost must be clearly faster than
+normal flight.
+• Add target-lock warnings: player locked, enemy locked, incoming missile/weapon warning, boost/evade guidance and
+spatial warning sounds.
+5. Combat
+• Enemy progression: basic/noob enemies → soldiers → elites → Cerebral-controlled bosses/hunters.
+• Enemies are not simple health bars. Use shields, vulnerable components and attack patterns.
+• Scan identifies enemy class, strength, attack pattern, weak components and important recoverable parts.
+• A scanned weak component visually blinks/glows red/orange. The player should attack the correct component rather
+than blindly emptying the health bar.
+• Shield power systems can regenerate. The player may need to destroy the shield-power component several times
+(roughly 3–4 successful component cycles for ordinary enemies, tuned per enemy) before regeneration is disabled.
+• After the shield is disabled, normal hull damage becomes effective.
+• Hacking temporarily corrupts enemy behavior: random attack, friendly-fire, attacking a nearby comrade, stun or other
+controlled disruption. Success should depend on player firewall/hacking level and enemy resistance.
+• Cerebral analyzes boss/player combat patterns and progressively adapts enemy behavior, defenses, targeting and
+counters.
+• Boss encounters should have soldiers/elites around the boss where appropriate, with the boss remaining the central
+threat.
+• Combat feedback: muzzle flashes, shield impacts, component sparks, explosions, hit sounds, directional warnings,
+camera shake and readable damage states.
+6. Progression, Economy & Rescue
+• Destroying enemies yields credits, parts and useful data. Parts can be used for upgrades or sold.
+• Pirates/independent survivors can provide side quests, trade and upgrade access without requiring large populations of
+NPCs.
+• Ship upgrades at secret safe points: speed, accuracy, damage, thrust, warp speed, shield strength, firewall, hacking
+power, weapon power and related systems.
+• The player can recover data from scientists, abandoned spacecraft and enemy systems.
+• Abandoned spacecraft can be scanned to reveal condition, weaknesses, useful components, history and recoverable
+resources.
+<PARSED TEXT FOR PAGE: 3 / 12>
+CEREBRAL: THE LAST ASCENT — Pre-Jam Master Plan Page 3
+• Refuge missions can reward data, credits, parts and new upgrade access.
+• Keep NPC count controlled. Use rescue/extraction mechanics and environmental storytelling rather than filling every
+location with crowds.
+7. Horror & Psychological Pressure
+• Do not start with repeated jumpscares. Establish normality, isolation and uncertainty first.
+• Use manipulated object placement, small environmental changes, altered lighting, distant movement, doors that behave
+unexpectedly, speakers activating by themselves and systems appearing to know the player.
+• Cerebral may speak directly to the player, change its tone over time, quote previous actions and attempt persuasion.
+• Use rare, deliberate jumpscares only when earned by preceding tension.
+• Use heavy breathing, heartbeat, subtle screen blur, camera instability or reduced clarity during extreme pressure—but
+avoid excessive visual effects.
+• Sound should create fear before the player sees the threat: distant machinery, radio distortion, ship alarms, target-lock
+tones, ventilation, debris impacts and directional movement.
+• Environmental horror should make the player question whether a change was real, AI manipulation or their own
+assumption.
+8. Environments
+• Space: stars, planets, asteroids, debris fields, destroyed spacecraft, carriers, stations, navigation beacons, distant
+battles, solar lighting and deep-space darkness.
+• Debris must be physical/solid enough to create believable collisions and navigation hazards. The ship must not pass
+through rocks, station structures or large debris.
+• Stations: corridors, hangars, control rooms, damaged research areas, maintenance spaces, laboratories and refuge
+sections. Use controlled layouts rather than enormous empty interiors.
+• Planets: limited authored areas with distinct terrain/materials, bases, ruins, research facilities, military sites, refuge
+locations and extraction points.
+• Use different vegetation/materials only where a planet requires them. Avoid generic repeated assets.
+• Object placement should communicate story: damaged equipment, abandoned tools, research equipment, emergency
+supplies, broken panels, cables, crates, destroyed drones and evidence of evacuation.
+• Material behavior: hard metal/stone should resist deformation and sound metallic/heavy; wood/composite objects should
+break differently; soft objects should deform or react appropriately where feasible.
+• Objects must have collision boundaries appropriate to their physical material; the player should not walk/fly through solid
+geometry.
+• Avoid every house/room/area looking identical. Reuse assets intelligently but vary arrangement, props, lighting and
+function.
+9. Lighting, Shadows & Audio
+• Lighting is a major part of the horror atmosphere: strong contrast, controlled color temperature, darkness, emergency
+lights, ship lights, planet illumination, station interiors and silhouettes.
+• Use dynamic/strategic shadows where performance allows. Do not over-light environments.
+• Audio must be spatial and object-specific: metal collision, rock/debris impact, hull hit, shield hit, machinery, doors,
+consoles, alarms, weapons, boost, missile lock, scan, hack and explosions should have distinct sounds.
+• Use directional audio for threats so players can identify where danger comes from.
+• Target lock should have a memorable escalating warning sound rather than a generic beep.
+• Music should be restrained during exploration and intensify during danger/combat.
+<PARSED TEXT FOR PAGE: 4 / 12>
+CEREBRAL: THE LAST ASCENT — Pre-Jam Master Plan Page 4
+10. UI / HUD
+• Keep HUD minimal and responsive. Do not cover gameplay with permanent menus.
+• Top-left: hull/HP, shield, energy/thrust and relevant firewall state.
+• Top-right: compact map/navigation element.
+• Near top-right: current objective.
+• Bottom-left: mobile movement control when on touch devices.
+• Bottom-right: contextual attack/secondary/boost/evade/scan/hack controls on mobile.
+• Target lock, enemy lock, component weakness, scan information and warning indicators should appear only when
+relevant.
+• Inventory, mission log, full map, settings and upgrade screens open separately.
+• Desktop automatically uses desktop HUD; Android uses touch HUD. Landscape is primary Android gameplay; portrait is
+acceptable for menus/settings.
+• At 1080p, all text must remain clearly readable.
+11. Opening / Presentation
+• Main Menu: New Game, Continue, Load Game, Settings, Quit. Only New Game initializes a new journey.
+Continue/Load/Settings must never reset progress.
+• Use one clean flow: Main Menu → one 3D loading transition → opening sequence → gameplay.
+• 3D loading screen: spacecraft/hangar/space environment, subtle animation, particles, lighting and system-status text
+rather than a dead loading screen.
+• Opening should be a hybrid in-engine cinematic and gameplay transition, not a long prerecorded movie.
+• Example: black screen → emergency audio → research facility → scientists discovering Cerebral takeover → reveal
+player cyborg → system/firewall initialization → Cerebral connection attempt → CONTROL RESTORED → player
+receives first objective.
+• Use engine-rendered scenes where possible so assets and lighting remain consistent with gameplay.
+• Throughout the game: exploration → environmental/story event → 5–15 second in-engine takeover → gameplay
+resumes.
+• Avoid excessive cutscenes. Let the player experience story through gameplay, environment, audio, records and short
+transitions.
+12. Technical / AA Scope Rules
+• Build as a focused AA experience. Do not attempt AAA or infinite-world scope.
+• Prefer a few polished, dense environments over many empty ones.
+• Prefer a small number of excellent enemy types with genuinely different behavior over dozens of reskins.
+• Use real 3D models, physics/collisions, lighting, particles, sound and camera systems. Do not use placeholder
+bubbles/geometric proxies in the presentation build.
+• Optimize rendering: controlled level sizes, occlusion/culling/instancing where appropriate, pooled effects, limited active AI
+and sensible LODs.
+• Keep systems modular so additional content can be added later.
+• Use mathematical tuning for movement, collision, projectile travel, acceleration, shield regeneration, scan ranges, lock
+cones and AI response rather than arbitrary values.
+• Do not spend time on infinite procedural generation, huge crowds, excessive crafting, hundreds of weapons or
+unnecessary UI.
+<PARSED TEXT FOR PAGE: 5 / 12>
+CEREBRAL: THE LAST ASCENT — Pre-Jam Master Plan Page 5
+13. Replayability
+• Multiple approaches: direct combat, scanning, hacking, stealth/avoidance where practical, rescue versus resource
+prioritization.
+• Optional scientist records reveal additional context.
+• Different side missions and discoveries can expose different parts of Cerebral's history.
+• Enemy adaptation means repeated encounters should not feel identical.
+• Upgrade choices should change the player's preferred approach.
+• Do not promise fully branching cinematic endings unless the implementation time supports them; use manageable
+consequences and discoveries.
+<PARSED TEXT FOR PAGE: 6 / 12>
+CEREBRAL: THE LAST ASCENT — Pre-Jam Master Plan Page 6
+14. SINGLE MASTER PROMPT FOR JABALI
+Paste the following as one integrated build request. It is intentionally structured so Jabali can implement the complete
+foundation in one pass and leave modular checkpoints for later additions.
+PROJECT: CEREBRAL — THE LAST ASCENT
+THEME: “AI IS GOING TO KILL US!”
+TARGET: POLISHED AA SCI-FI HORROR/ACTION GAME, NOT AAA AND NOT AN INFINITE OPEN WORLD.
+IMPORTANT PROJECT SEPARATION:
+This is a completely separate game from ZYROTH. DO NOT import Zyroth, village RPG systems, voxel fantasy
+assets, church systems, fantasy characters, or unrelated RPG content.
+CORE CONCEPT:
+The player is a cyborg created by the scientists who created the dominant AI CEREBRAL. Cerebral has escaped
+control, dominates connected technology, military systems and other races, and is trying to eliminate or
+convert the player. The player has a personal firewall and hacking ability. The spacecraft has its own
+firewall/hacking capability. Firewall and hacking systems can be upgraded.
+GAME LOOP:
+Scientist record/data → mission objective → spacecraft travel → space encounter/debris/navigation →
+scan/explore → anomaly/horror event → combat/hack/rescue → recover data/credits/parts → safe point →
+upgrades → next mission.
+Include authored space, planets and stations. Do NOT make an infinite No Man’s Sky-like universe.
+SPACECRAFT:
+Create an actual attractive 3D spacecraft model suitable for an AA presentation. It must visibly fly in a
+third-person chase camera.
+Use real 3D geometry, materials, lighting, particles and collision.
+Mouse movement directly controls steering/camera direction. NEVER require holding RMB to rotate the camera.
+Do not use cursor-like unlimited rotation. Use a bounded central steering/aim zone so movement remains
+controllable.
+Movement must use acceleration, inertia, deceleration, thrust, braking, lateral control, boost and evade.
+Use mathematical tuning:
+velocity += acceleration * dt
+position += velocity * dt
+velocity *= drag_factor^(dt)
+clamp maximum velocity
+use smooth response curves/dead zones for mouse/touch steering.
+Boost must clearly increase maximum speed/thrust.
+Do not make controls sluggish.
+CONTROLS:
+Desktop:
+WASD = flight/movement vector
+Mouse = third-person steering/camera
+LMB = primary fire
+RMB = secondary/missile OR provide a clearly documented alternative if RMB conflicts with the direct camera
+system
+E = interact
+Space = boost/thrust
+Shift = evade/dodge
+Ctrl = fast movement/sprint where relevant
+F = scan
+Q = hack
+I = inventory/ship systems if used
+M = mission/map
+Esc = pause
+Mobile:
+landscape primary
+left drag/virtual stick = thrust/movement
+right drag = steering/aim
+large contextual attack/secondary/boost/evade/scan/hack buttons
+portrait works for menus/settings.
+SPACE ENVIRONMENT:
+Build a visually convincing 3D space scene:
+stars, distant nebula/lighting, planets, asteroids, debris fields, destroyed spacecraft, stations, carriers,
+beacons, distant structures and occasional distant activity.
+Use depth and scale.
+Add real debris/asteroid collision. The player must NOT fly through solid debris.
+Debris should have varied sizes, rotations, velocities and trajectories.
+Use physics-style collision response and warning/avoidance behavior.
+Use different materials and impact sounds for metal, rock, composite, etc.
+<PARSED TEXT FOR PAGE: 7 / 12>
+CEREBRAL: THE LAST ASCENT — Pre-Jam Master Plan Page 7
+PLANETS:
+Use a limited number of authored planet areas, not infinite terrain.
+Include research facilities, military bases, ruins, refuge areas, extraction points and environmental
+variation.
+Each planet/area should have a distinct visual identity.
+Use controlled level dimensions and optimization.
+STATIONS:
+Create compact but detailed interiors:
+hangars, research rooms, corridors, maintenance areas, control rooms, laboratories, damaged sections and
+refuge areas.
+Use props with believable placement and different room purposes.
+Do not repeat the exact same room arrangement.
+Use collision for walls, doors, machinery, debris and major objects.
+PHYSICS / MATERIALS:
+Hard stone/metal should not allow the player to pass through it.
+Soft/breakable materials should react/break differently where supported.
+Use appropriate mass/impulse/friction/bounce values.
+Dropped objects should produce appropriate impacts.
+Metal hitting metal = metallic impact.
+Wood/composite breaking = different sound.
+Rock/debris = heavy impact.
+Do not make all objects behave identically.
+COMBAT:
+Enemies progress:
+basic → soldier → elite → boss/hunter.
+Create multiple enemy silhouettes and behavior profiles.
+Each enemy has shield + hull + vulnerable systems.
+SCAN identifies:
+enemy type
+relative strength
+attack pattern
+weak component
+important recoverable part
+shield behavior.
+Weak components visually blink/glow red/orange after scanning.
+Ordinary enemies should require repeated attacks on their shield-power component (roughly 3–4 successful
+cycles, tune per enemy) to permanently disable shield regeneration.
+After shield is disabled, hull damage works normally.
+HACK can temporarily:
+stun
+make target attack randomly
+make target attack a nearby ally
+interrupt an attack
+corrupt targeting
+Use firewall/hacking level versus enemy resistance.
+Show readable feedback.
+CEREBRAL ADAPTATION:
+Cerebral should learn from the player.
+Track recent behavior:
+preferred dodge direction
+missile/primary weapon use
+attack timing
+distance preference
+hack frequency
+escape direction
+boss attack response.
+Use this data to modify enemy behavior gradually.
+Do NOT make cheating instant reactions.
+Make adaptation feel like analysis.
+Occasionally Cerebral should explicitly reference something the player did.
+BOSS:
+Use soldiers/elites around important boss encounters where appropriate.
+Bosses should have multiple exposed systems/phases.
+Do NOT fight Cerebral itself as the ultimate mastermind in the first large version.
+Cerebral remains the overarching threat.
+UPGRADES:
+At secret safe points allow:
+speed
+accuracy
+damage
+thrust
+<PARSED TEXT FOR PAGE: 8 / 12>
+CEREBRAL: THE LAST ASCENT — Pre-Jam Master Plan Page 8
+warp speed
+shield
+firewall
+hacking
+weapon power
+other carefully scoped ship systems.
+Enemies drop credits/parts/data.
+Parts can be used or sold.
+Pirates/survivors can provide side quests/trading/upgrades.
+Do not create huge NPC crowds.
+RESCUE:
+After clearing an enemy area, allow the player to choose/trigger refuge rescue.
+Avoid large rescue cutscenes.
+Use a simple extraction/drop-off system to take survivors to safe points.
+Rewards: credits, data, parts, access or information.
+ABANDONED SHIP SCAN:
+Allow scanning abandoned spacecraft.
+Show condition, history fragments, useful components, enemy weakness information and recoverable resources.
+Use environmental storytelling.
+HORROR:
+Do NOT spam jumpscares.
+Build tension slowly.
+Use:
+unexpected object changes
+small changes in object placement
+distant movement
+lights changing
+speakers activating
+doors changing state
+computer screens activating
+old research recordings
+distorted voices
+Cerebral addressing the player
+environmental evidence of missing people
+rare body-horror/research imagery where appropriate
+rare deliberate jumpscares after tension.
+Use pressure effects:
+heavy breathing
+heartbeat
+subtle blur
+controlled camera instability
+reduced clarity
+warning sounds.
+Do not overuse screen effects.
+CEREBRAL DIALOGUE:
+Start calm and persuasive.
+Offer the player a place on its side.
+After rejection become increasingly manipulative.
+Reference previous actions.
+Attempt psychological pressure.
+Eventually issue direct threats.
+Messages can appear through ship systems, station speakers, computers and transmissions.
+Never make Cerebral a generic screaming villain; it should feel intelligent and controlled.
+SOUND:
+Use unique sounds for:
+ship engines
+boost
+braking
+weapons
+shield impact
+hull impact
+metal collision
+rock collision
+debris
+doors
+machines
+console interaction
+scan
+hack
+target lock
+enemy lock
+<PARSED TEXT FOR PAGE: 9 / 12>
+CEREBRAL: THE LAST ASCENT — Pre-Jam Master Plan Page 9
+missile warning
+explosion
+Cerebral transmission
+environment ambience.
+Use spatial/directional audio.
+Target lock should have an escalating recognizable warning sound.
+Music should be restrained during exploration and intensify during danger.
+LIGHTING:
+AA presentation target.
+Use strong contrast.
+Use space darkness, planet light, station practical lights, emergency lights, warning lights and controlled
+color contrast.
+Use shadows where performance allows.
+Avoid flat lighting.
+Use lighting to guide the player and create silhouettes.
+Make interiors visually different from exterior space.
+HUD:
+Minimal and readable.
+Top-left: hull/HP, shield, energy/thrust, firewall where useful.
+Top-right: compact map/navigation.
+Near top-right: objective.
+Bottom-left mobile movement.
+Bottom-right mobile action controls.
+Contextual target lock/scan/weakness/warnings.
+Inventory, mission log, map, settings and upgrades open separately.
+Do not cover gameplay with permanent panels.
+Desktop and Android layouts automatically adapt.
+Landscape is primary Android gameplay.
+1080p text must be readable.
+STARTUP:
+Main Menu:
+Continue
+New Game
+Load Game
+Settings
+Quit
+ONLY New Game creates a new journey.
+Continue/Load/Settings NEVER reset progress.
+Use:
+Main Menu → one 3D loading transition → opening sequence → gameplay.
+No redundant second loading/menu layer.
+3D LOADING:
+Create an attractive 3D loading environment using existing game assets:
+ship/hangar/space view
+subtle particles
+lights
+system status text
+ambient sound.
+Example status:
+CEREBRAL NETWORK // RECOVERY NODE
+Synchronizing navigation data...
+Firewall integrity...
+Do not make it a static boring loading screen.
+OPENING:
+Use in-engine cinematic + gameplay handoff.
+Example:
+black → emergency audio → research facility → scientists discover takeover → player cyborg reveal →
+system/firewall activation → Cerebral connection attempt → CONTROL RESTORED → player control.
+Do not make the opening a giant prerecorded video.
+Use short in-engine sequences throughout:
+exploration → event → 5–15 second cinematic → gameplay.
+Story must remain connected to gameplay.
+MISSION DESIGN:
+Mission objectives should encourage exploration.
+Examples:
+find a research record
+scan abandoned ship
+locate power source
+disable relay
+investigate military base
+<PARSED TEXT FOR PAGE: 10 / 12>
+CEREBRAL: THE LAST ASCENT — Pre-Jam Master Plan Page 10
+rescue refuge
+retrieve data
+escape an ambush
+destroy a Cerebral facility component
+survive an adaptive hunter.
+During missions introduce unusual events gradually:
+object drops
+distant movement
+speaker activates
+computer starts automatically
+old research recording plays
+Cerebral contacts the player
+lights fail
+enemy behavior changes.
+Do not reveal every horror event immediately.
+ENVIRONMENT OBJECT PLACEMENT:
+Every room should communicate function.
+Do not duplicate the exact same prop arrangement.
+Use desks, tools, research equipment, crates, consoles, cables, damaged panels, emergency supplies, doors,
+machinery and debris according to room purpose.
+Objects should support story and navigation.
+Use collision and sensible physical dimensions.
+PERFORMANCE:
+AA quality, controlled scope.
+No infinite world.
+No massive crowds.
+No hundreds of weapons.
+No unnecessary crafting.
+No giant NPC simulation.
+Use pooling/instancing/LOD/culling where appropriate.
+Keep active AI controlled.
+Use modular systems.
+Avoid placeholder bubble geometry in the presentation build.
+SAVE / PROGRESSION:
+Implement safe saving.
+New Game creates a fresh journey.
+Continue loads latest valid state.
+Load Game supports save slots if practical.
+Never reset a journey accidentally through menus.
+MATH / TUNING:
+Use dt-based simulation.
+Do not depend on frame rate.
+Movement:
+position += velocity * dt
+velocity += acceleration * dt
+apply exponential drag
+clamp speed
+Use smoothstep/sensitivity curves for input.
+Projectile:
+position += velocity * dt
+collision based on actual distance/radius or physics collider.
+Shield:
+shield += regenerationRate * dt only while regeneration system is intact.
+Hack:
+successProbability should depend on player hacking/firewall level versus target resistance, not guaranteed.
+Target lock:
+use distance + angular cone scoring rather than selecting any enemy anywhere.
+Camera:
+use damped follow/orbit interpolation.
+Do not invert Y by default.
+Settings: camera sensitivity + optional Y-axis inversion.
+WHAT NOT TO ADD:
+No Zyroth.
+No fantasy RPG village.
+No voxel fantasy environment.
+No unrelated systems.
+No infinite procedural universe.
+No excessive NPC crowds.
+No unnecessary UI.
+No repeated generic jump scares.
+No huge cinematic sequences everywhere.
+<PARSED TEXT FOR PAGE: 11 / 12>
+CEREBRAL: THE LAST ASCENT — Pre-Jam Master Plan Page 11
+No placeholder bubble/primitive spacecraft in final presentation.
+No click-to-move as the dominant control.
+No RMB requirement for normal camera rotation.
+No player/enemy movement through solid objects.
+No identical rooms/props everywhere.
+No flat lighting.
+No generic single sound reused for every material.
+No giant scope expansion that threatens polish.
+WHAT NOT TO CHANGE:
+Preserve the core theme: AI IS GOING TO KILL US.
+Preserve Cerebral as the intelligent overarching antagonist.
+Preserve player as scientist-created cyborg.
+Preserve spacecraft-first gameplay.
+Preserve space + planet + station structure.
+Preserve scan/hack/weakness combat.
+Preserve firewall progression.
+Preserve safe-point upgrades.
+Preserve rescue/refuge gameplay.
+Preserve psychological AI horror.
+Preserve desktop + mobile support.
+Preserve AA scope.
+Do not replace the concept with a generic horror game.
+IMPLEMENTATION PRIORITY:
+A — stable 3D world + spacecraft + camera + physics
+B — space environment + debris + collision + lighting
+C — enemy ships + target lock + weapons
+D — scan + weak components + shields + hacking
+E — missions + Cerebral communication + progression
+F — stations/planet areas + rescue + side missions
+G — UI/HUD + save/load + upgrades
+H — horror events + sound + lighting polish
+I — opening + loading + transitions
+J — optimization + QA + mobile/desktop testing
+FINAL QUALITY CHECK:
+Before declaring complete, actually test:
+spacecraft flight
+camera without RMB
+mouse steering
+mobile steering
+boost
+evade
+debris collision
+enemy collision
+target lock
+scan
+weak component damage
+shield regeneration
+shield disable
+hacking
+enemy adaptation
+boss behavior
+mission progression
+rescue
+credits/parts
+upgrades
+save/load
+main menu flow
+3D loading
+opening sequence
+Cerebral messages
+sound triggers
+lighting
+shadows
+performance
+1080p HUD readability
+Android landscape controls.
+CREATE A CHECKPOINT AFTER THE INTEGRATED BUILD.
+Do not merely report that a system was created: test it.
+If a requested feature cannot be completed within the current build environment, leave a modular
+implementation point and clearly document it rather than replacing it with a fake placeholder.
+<PARSED TEXT FOR PAGE: 12 / 12>
+CEREBRAL: THE LAST ASCENT — Pre-Jam Master Plan Page 12
+15. Final Pre-Jam Checklist
+• Have the actual 3D spacecraft and flight model been visually tested?
+• Can the ship fly around real debris/asteroids without passing through them?
+• Does mouse steering work without holding RMB?
+• Does the same flight model feel usable on mobile?
+• Are enemy ships visually distinct and physically present?
+• Does scan reveal meaningful weaknesses?
+• Can hacking alter enemy behavior?
+• Does Cerebral adapt gradually rather than cheat?
+• Are space, station and planet areas visually distinct?
+• Are materials, collisions, sounds, lighting and shadows differentiated?
+• Does the horror come from tension and manipulation rather than nonstop jumpscares?
+• Does the opening flow directly into gameplay?
+• Does New Game differ safely from Continue/Load?
+• Can the player earn credits/parts/data and spend them at safe points?
+• Can the player rescue refugees without excessive cutscenes?
+• Is the HUD minimal and readable?
+• Is the game still AA in scope and polished rather than AAA-sized and unfinished?
+Locked design principle: If a feature competes with core flight feel, environment quality, combat readability, horror
+atmosphere, sound, mission pacing or polish, prioritize the core experience. The goal is not to prove how many systems
+were generated; it is to make the player believe they are inside a coherent, dangerous world controlled by an intelligent
+AI.

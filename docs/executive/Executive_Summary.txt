@@ -1,0 +1,880 @@
+<PARSED TEXT FOR PAGE: 1 / 15>
+Executive Summary
+We propose a comprehensive final pass to turn the existing CEREBRAL: The Last Ascent prototype into a 
+fully polished reference build. This entails preserving all working gameplay while enhancing visuals,
+audio, UI, and horror elements. Key fixes include refining spacecraft inertia, improving weapon
+accuracy and recoil, syncing dialogue captions with speech, and enforcing the narrative rules that 
+Cerebral’s voice is internal and enemy comms appear only after scanning. We will integrate the rich 3D
+reference assets for the player ship, enemy classes, and the Cerebral planet, establish formal Asset
+and Color Bibles, and expand world content (stations, wreckage, missions) with modular kits. Enhanced
+horror content (ghost ships, blood-stained environments, subtle AI manipulations) will psychologically
+challenge the player. Free CC0 resources (Poly Haven textures/models【14†L84-L90】, Kenney assets,
+Freesound effects) will be used. 
+The following report details all gaps and fixes, proposes math and code patterns for smooth physics
+and feedback, and outlines a development roadmap. We provide a final single-shot Claude prompt
+and a separate Jabali-from-scratch brief. We include tables of priorities, asset/color bibles, a QA
+checklist, and mermaid diagrams for system architecture, timeline, and story flow. This becomes the
+definitive design document guiding both the reference build and the later Jabali implementation.
+Analysis & Gap List
+We evaluated the current prototype and reference materials. The foundation is solid (WASD flight, chase
+camera, shields, multi-phase enemies, scan/hack, missions, mobile support). However, critical gaps
+remain in feel, visuals, audio, and narrative. Below are the prioritized issues (P0 highest) and the exact
+fixes required:
+P0 – Core Gameplay & Feel (Must Fix)
+Flight Inertia / Cruise Speed: Issue: The ship loses speed too quickly when not thrusting,
+making non-boosted cruise feel sluggish and comparable to a Drone’s speed. Fix: Reduce passive
+drag. Use delta-safe smoothing: for example,
+const dragFactor = 0.995;
+P.vel.multiplyScalar(Math.pow(dragFactor, dt));
+This preserves forward momentum (unlike the current aggressive .55 factor). Player velocity should
+gradually bleed off, not drop abruptly【14†L84-L90】. This lets the player maintain combat speed
+without constant boosting.
+Weapon Accuracy & Recoil: Issue: Spread/recoil often cause missed shots that feel like “wasted
+bullets.” Fix: Reduce base spread at range; apply limited controlled recoil as a visual kick, not
+large aim deflection. Use predictive aiming for locked targets:
+• 
+• 
+1
+<PARSED TEXT FOR PAGE: 2 / 15>
+let interceptT = distance / projectileSpeed;
+let predictedPos =
+target.position.clone().add(target.velocity.clone().multiplyScalar(interceptT));
+let shootDir = predictedPos.sub(player.position).normalize();
+Weapon recoil should be smoothed: 
+let targetRecoil = new Vector3(0, 0, -0.1);
+recoil.add(targetRecoil.clone().sub(recoil).multiplyScalar(1 - Math.exp(-k *
+dt)));
+recoil.lerp(new Vector3(0,0,0), 1 - Math.exp(-recovery * dt));
+Confirm hits with clear feedback (flashes, sparks, HUD change) so the player sees and hears each
+successful hit.
+Dialogue Sync: Issue: Captions often appear before or after the speech. Fix: Use a unified
+dialogue function. E.g., 
+let utter = new SpeechSynthesisUtterance(line.text);
+utter.onstart = () => showSubtitle(line.text);
+utter.onend = () => hideSubtitle();
+speechSynthesis.speak(utter);
+This ensures subtitles and voice start/stop together. Queue lines to avoid overlap and handle
+interruptions gracefully.
+Narrative Rules:
+Cerebral’s Voice: Must always be an internal voice, not coming from any in-world speaker. Label
+dialogue as “Cerebral” and apply audio filtering to suggest “in-head” origin【7†L161-L169】.
+Enemy Communication: Ships do not broadcast lore text by default. Only after scanning an enemy
+do we unlock its comms (distress calls, chatter) to avoid info dumping. Before scan, an enemy
+shows only generic markers and attacks.
+HUD Customization: Add a HUD Settings menu. Players can toggle elements (health, radar,
+mission log, subtitles) and adjust size/opacity. Provide presets (Full, Combat-Focused, Minimal)
+and allow keyboard remapping (forward, fire, scan, etc.) as currently supported, ensuring logical
+action bindings. Changes must persist.
+Tutorial & Help: Implement an interactive tutorial mode accessible from the menu. In tutorial,
+spawn simple targets or dummy drones to let players practice thrusting, dodging, firing, locking,
+scanning, and hacking. This fixes the current text-only tutorial by giving players hands-on
+experience.
+Save/Load: Extend beyond 2 slots. Offer 3–5 save slots with timestamps and descriptions (e.g. 
+Safe Point: #2). Verify that saving/loading preserves progression, inventory, upgrades, and visited
+events. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+2
+<PARSED TEXT FOR PAGE: 3 / 15>
+Objective Progression: First mission must lead to Cerebral properly. After scanning the initial
+derelict, a hackable terminal reveals “Unknown Planetary Signal.” On hack success, add a new
+map waypoint. Cerebral’s planet should only appear as a distant objective at mission end, not
+immediately visible on launch. This pacing respects story discovery.
+P1 – Visuals and Assets (High Priority)
+Asset Integration: Replace all placeholder geometry with the high-fidelity models from our
+reference images: 
+Player Ship: Build the hero ship with the silhouette, cockpit, wings, engine pods, etc. indicated in
+our concept sheet. Use MeshStandardMaterial with metallic=1.0, roughness ~0.3 on hull; black
+glass on cockpit. Add emissive stripes and engine glow (cyan). Ensure a damage-pass texture
+(scratches/burn marks) for hull damage.
+Enemies: Create distinct models for Drone, Soldier, Elite, Warden as per the reference sheet. For
+example, Drones are small winged interceptors; Soldiers are medium fighters with amber
+insignia; Elites have purple highlights; Wardens are large crimson-command ships. Each with a
+visible multi-stage shield generator component (glowing hub).
+Ghost Ship: Design a derelict cruiser (darkened, twisted lights, bloodied metal). It should be
+noticeably different (age, style, hull damage) from active enemies.
+Cerebral Planet: Drastically expand the existing “network planet” into a massive artificial
+structure. Add ring structures, orbital arrays, huge antennas, glowing energy conduits across its
+surface. Use large-scale textures and emissive cores. The planet’s colors should be harsh (black
+rock with glowing cyan/red).
+LOD/Performance: Use 1–2 LOD levels: full detail on close-up (≈200–300 triangles per ship),
+reduced poly at distance. Aim for ~60–100K triangles total across scene. Optimize using
+instancing/geometry merging for repetitive debris.
+Color Bible: Establish a strict palette with hex values and usage rules:
+Role Primary Hex Secondary Hex Usage Notes
+Player Ship #5CE1E6 (cyan)
+#1C1C1C (dark
+grey)
+Hull accent/light; health/shield UI
+color
+Drone
+#A3E1FF (light
+cyan)
+#1C1C1C
+Small/fast enemy, friendly-ish color
+accent
+Soldier #FFD580 (amber) #2C2C2C Medium enemy, militaristic accent
+Elite #E580FF (purple) #2C2C2C Strong enemy, high-tech accent
+Warden #FF4C4C
+(crimson)
+#2C2C2C Boss enemy, danger accent
+Safe/Tech #5CE1E6 (cyan) #A3E1FF
+Stations, consoles, friendly UI
+elements
+Research Lab #A3E1FF (blue) #FFFFFF
+Science areas (white lights, blue
+ambience)
+Military/
+Refuge #FFD580 (amber) #808080 Industrial lights, warning signals
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+3
+<PARSED TEXT FOR PAGE: 4 / 15>
+Role Primary Hex Secondary Hex Usage Notes
+Abandoned #8B8B8B (gray) #5C2C2C Derelicts, wrecks, blood highlights
+Cerebral #FF4C4C (red) #1C1C1C
+AI network, corrupted tech, alert
+states
+All assets and UI should use these consistently. For example, shield energy always glows cyan, enemy
+weak-points blink red, UI bars for health/shield use player-cyan, targets (especially Elite/Warden) have
+their class color in the HUD. This avoids visual confusion.
+Materials & Lighting:
+Use PBR materials. MeshStandardMaterial in Three.js (metalness/roughness) is suitable. Hulls:
+metalness=1, roughness≈0.3 with subtle bump. Glass: metalness=0, roughness=0.1 with
+envMap. 
+Lighting Presets: Implement scene presets (Directional sunlight + ambient rim light) for each
+location: Space, Station Interior, Cerebral. For example, a far sun casts warm highlight on ships
+(mix of yellow-white), with the ambient horizon light tinted by nebula color. Interior modules use
+point/spot lights (cold white for lab, warm amber for military), toggled by mission state
+(emergency red flickering).
+Shadows: Use selective shadows. Key objects (player, near walls) cast shadows; avoid shadow￾casting for every point light to save performance【14†L84-L90】. Use ambient occlusion (baked
+or SSAO) for depth.
+Space Environment:
+Enrich the backdrop. Keep starfield and nebula as background, but add midground: scattered
+asteroids with detailed textures (rock + ice), ship wrecks (half-buried asteroids, fallen satellites),
+distant spacecraft silhouettes (capital ships seen far). 
+Use volumetric fog sparingly for planets (e.g. a faint gas ring around Cerebral) to add depth.
+Foreground: floating debris and smaller asteroids that drift when ships pass, emphasizing scale.
+Asset Kit: Build modular pieces (wall segments, pipes, consoles) for stations so we can create
+varied rooms (labs, docking bays) quickly. A mix of metal panels, consoles, cables, vents should
+form the research labs and military halls. 
+UI / HUD Polish: Maintain clarity with hierarchy. Group HUD elements:
+Center-bottom: Reticle/target info.
+Bottom-left: Player status (shield, hull bars, energy).
+Top-right: Radar/minimap (circular or cone view).
+Top-left: Mission/objective.
+On-target: Floating info (target name, distance, lock indicator). Use subtle animations on updates
+(e.g. blink shield bar when hit). Ensure the HUD is legible at all camera distances. On mobile,
+scale and spacing must be adjusted (we have that partly done).
+P2 – Audio & Horror (Important)
+Sound Design: Layered, spatial audio is critical. Use CC0 or self-created samples:
+Player engine hum + thrust surge (obtain from Freesound or synth; license check). Engine pitch/
+volume increase with throttle. Boost adds a distinct whoosh.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+4
+<PARSED TEXT FOR PAGE: 5 / 15>
+Weapon sounds: Laser “pew” (short beam sound), missile “whistle” on travel, explosion booms
+(different sizes). Impact sounds: shield “zing” (sci-fi zap), hull “clang/drip” (metal impact).
+Environmental: Station ambient hum, pipe/radio interference, station alarms (siren). In space:
+distant rumble, electromagnetic static.
+Spatialization: Use positional audio (Three.js AudioListener / PositionalAudio ). Sound
+volume/fade based on distance: e.g., 
+let dist = listener.position.distanceTo(source.position);
+let vol = 1 / (1 + Math.pow(dist/20, 2));
+This mimics inverse-square law【9†L170-L178】 but clamped to keep subtle distant ambiance.
+Horror Audio: Cerebral’s voice with reverb, slight distortion. Occasional whispers or static.
+Heartbeat thump when heavily damaged. Silence and high-frequency stingers in key moments
+to jolt players.
+Horror Content: Build on the existing terror system:
+Blood/Stains: In lab/refuge areas, place sporadic blood trails, handprints on walls, overturned
+chairs, and inert corpses. These cues suggest prior violence. (Keep it implied; no gore spatter on
+screen.)
+Ghost Encounters: Expand the derelict “ghost ship” event. For example: a deserted research
+ship drifting silently. As the player approaches, its lights flicker on. A disembodied log plays (“…I
+hear whispers… did something move?”) and then static. If the player scans, data appears
+corrupted. The ship vanishes or reappears elsewhere. This should be rare and optional but
+memorable.
+AI Manipulations: During missions, introduce subtle anomalies: flickering instrument panels,
+doors that close behind spontaneously, mission audio with a beat or echo. At extreme tension,
+the background may distort (e.g., screen vignette pulse on damage).
+Cerebral Dialogues: Write lines that comment on player choices (dodge patterns, weapon use)
+and philosophical remarks (“Why do you fight? Are you any different?”). Use sparse distribution:
+let silence speak between threats【7†L191-L199】. Always present lines AFTER events (e.g. “You
+destroyed them quickly.” after killing enemies).
+Jumpscare Use: Very limited; e.g. dark corridor with a sudden distant figure. More often rely on
+suspense: what’s unseen is scarier【7†L197-L200】.
+P3 – Content & UI (Polish)
+Mission Expansion: Roughly double content. Examples:
+Research Data Recovery: Investigate abandoned lab, hack a terminal to locate survivors.
+Convoy Escort: Protect cargo ships through pirate-infested zone.
+Station Defense: Hold off waves as a safe point.
+Warden Phase 2: After initial defeat, he retakes control - optional extra fight.
+Each mission should have clear objectives and justification (e.g. “We need that scientist’s data.”).
+Progression & Salvage: Categorize parts and upgrades:
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+5
+<PARSED TEXT FOR PAGE: 6 / 15>
+Salvaged Shield Parts, Engine Parts, Weapon Components, Firewall Chips. 
+Upgrades visibly change performance (brighter engine glow for higher thrust, bigger HUD bar,
+etc.).
+Display part counts and usage in the upgrade menu.
+Data/Logs: Ensure each discovered log or transcription advances plot or provides lore. Link logs
+to environmental clues.
+UI Style: Refine menu aesthetics. The main menu can feature a subtle 3D backdrop (ship gently
+drifting in front of a star/planet). Submenus should have consistent theming (futuristic font,
+animated highlight on selection). The loading screen could show schematic or rotating model of
+a key asset (like the player ship blueprint).
+Quality Settings: Already exposed; just ensure they behave. For example, Shadows: Off/Low/
+High, Particles: Low/High, etc.
+Code Architecture & Quality
+The current prototype is one large HTML/JS file. For future development and especially for Jabali
+recreation, document modular responsibilities:
+InputHandler, FlightController, CameraController, CombatSystem, ProjectileManager, 
+EnemyAI, ShieldSystem, HackingSystem, MissionManager, HorrorManager, UIManager, 
+SettingsManager, SaveManager.
+Eliminate global variables where possible. Use classes or modules (if migrating to ES6 or similar
+in Jabali).
+Performance: reuse objects (pools for projectiles, particles). Limit per-frame allocations. Profile
+for memory leaks (especially due to Web Audio nodes or Three.js objects).
+Maintain code comments (especially before each system function) and consistent formatting for
+readability.
+Prioritized Development Plan
+We assign tasks to Tiers by priority:
+Tier Deliverable Complexity Regression Risk
+P0
+Cruise inertia fix, weapon aim/recoil fix, dialogue
+sync fix, narrative rules enforcement, HUD
+remapping/Tabs/Tutorial, Save slots and first
+mission flow
+High
+High if movement
+altered incorrectly (must
+test thoroughly)
+P1
+Integrate ship & enemy 3D models, Cerebral
+planet expansion, station/debris environment,
+material & lighting revamp, audio overhaul
+High
+Medium (art changes
+may need scene
+adjustments)
+P2
+Asset/Color Bible docs, modular kits for levels,
+mission variety, ghost ship & blood events, UI
+polish, upgrade/salvage systems
+Medium Low (new content, but
+must test quests)
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+6
+<PARSED TEXT FOR PAGE: 7 / 15>
+Tier Deliverable Complexity Regression Risk
+P3
+Final performance tuning, QA tests (automated +
+screenshot), tutorial polish, minor aesthetic
+tweaks
+Medium Low
+Complexities: High means multi-week work (art/3D); Medium gameplay/logic; Low polish tasks.
+Regression risk is highest when altering core movement/combat (P0).
+Asset Bible
+Asset ID Role Color Palette Emissive
+Color
+LOD/Poly
+Target
+Damage States
+Player_Ship Player
+fighter
+Dark metal +
+cyan
+Cyan
+engines/
+eyes
+~5k
+polys
+(LOD3:
+3k)
+Laser scorch,
+broken panels
+Drone
+Small
+interceptor
+Dark metal +
+light cyan
+Cyan tip
+lights
+~2k
+polys
+Local dents,
+flicker on death
+Soldier Medium
+fighter
+Metal +
+amber
+accents
+Yellow
+engine
+~4k
+polys
+Panels broke,
+smokes
+Elite Advanced
+fighter
+Metal + violet
+accents
+Purple glow ~4k
+polys
+Arc sparks,
+heavy smoke
+Warden Boss ship
+Metal +
+crimson
+accents
+Red energy
+cores
+~8k
+polys
+Explosive
+breaches,
+cascading
+sparks
+Safe_Station Docking
+station
+Steel + teal
+glow
+Teal beacon
+lights
+N/A
+(static
+mesh)
+Cracked walls,
+sparks
+Research_Facility Lab
+complex
+White + cyan
+highlights
+Green/blue
+monitors
+N/A
+Burn marks,
+spilled fluids
+Military_Base Outpost /
+Carrier
+Steel +
+amber/
+warning
+Orange
+warning
+N/A
+Damaged
+turrets, fires
+Wreck_Ship Derelict
+vessel
+Rusty metal +
+dark stains
+None (lights
+off) N/A
+Hull breach,
+fires, blood
+Asteroid Space rock
+Gray rock w/
+brownish
+veins
+None N/A Fractures on hit
+7
+<PARSED TEXT FOR PAGE: 8 / 15>
+Asset ID Role Color Palette Emissive
+Color
+LOD/Poly
+Target
+Damage States
+Cerebral_Planet AI planet
+system
+Black rock +
+red grid
+Cyan lattice
+veins
+Very
+high
+(planet)
+Massive energy
+bursts on
+breach
+Ghost_Ship Haunted
+derelict
+Dark matte +
+flicker red
+Occasional
+light N/A
+Sudden vanish,
+partial
+transparency
+Debris Misc
+fragments
+Matching
+nearest object None N/A Shards, dust
+Weapon_Laser
+Player laser
+bolt
+Bright cyan￾white
+Light yellow
+core
+N/A
+Explodes on
+impact
+Weapon_Missile Guided
+missile
+Dark casing
+w/ white
+flame
+Orange
+exhaust N/A Explosion decal
+Shield_Effect Active
+shield aura
+Transparent
+cyan
+Bright cyan
+edges N/A
+Flicker/
+extinguish on
+down
+Each asset’s damage states should be visually distinct (sparks, smoke, particle debris). Meshes should
+be UV-unwrapped for decals and emissive layers.
+Color Bible
+We define key colors (hex) and context:
+Player/Allies (Cyan): #5CE1E6 – Used for player ship accents, shield glow, friendly UI. (Cold,
+technological)
+Enemy Minor (Light Cyan): #A3E1FF – Drone glow/accents.
+Military (Amber): #FFD580 – Soldier accents, warnings. (Warm alert color)
+Elite (Purple): #E580FF – Elite ship glow/accents (otherworldly tech).
+Warden/Cerebral (Red): #FF4C4C – Danger. Warden shields, Cerebral energy lines. (High
+threat)
+Station/Neutral (Steel): #808080 or #1C1C1C – Bulk of ship/station hull.
+Refuge/Gore (Muted Green): #88AA88 – Safe/refuge lighting; blood highlights: Use dark red 
+#5C2C2C sparingly for gore marks.
+Background Sky (Space): Black #000000 with subtle nebula colors ( #202050 , #500050 ).
+HUD Text: White #FFFFFF ; HUD bars tinted as above.
+Rules: Red = threat/horror, Cyan = player/tech, Amber/Purple = distinct factions, Gray/Steel =
+structures. Use consistent color for labels (e.g. target reticle matches enemy’s accent color).
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+8
+<PARSED TEXT FOR PAGE: 9 / 15>
+QA Test Checklist
+We combine automated checks (marked ✔) and key manual screenshot verifications (marked ):
+Movement & Physics:
+✔ WASD and mouse steering at any frame rate.
+✔ Boost and evade respond correctly.
+✔ After thrust release, ship continues moving smoothly (drift).
+✔ Camera follows without clipping the ship (test near walls).
+Screenshot: Ship gliding through space (should not stop instantly).
+Combat Basics:
+✔ Primary fire hits target when aimed.
+✔ Missile locks and hits with homing.
+✔ Target lock UI appears and updates target info.
+Screenshot: Laser impact on shield with ripple effect.
+✔ Enemy lock warnings (audio + visual) for incoming.
+✔ Shield regeneration stops only after required generator hits.
+Screenshot: “SHIELD GENERATOR DOWN 2/3” message and effect.
+✔ Hull damage visible (sparks, smoke).
+✔ Enemies react and die (explosion scale correct).
+Screenshot: Final blow on Warden, explosion and debris.
+Systems:
+✔ Scanning shows enemy details (post-scan comms unlock).
+Screenshot: Scanned data panel with weakness highlighted.
+✔ Hacking success/fail yields effects (e.g. stun, target switching).
+✔ Missions progress correctly (targets kill counts, items, etc).
+✔ Safe Point healing/upgrade interface works (use parts).
+✔ Save and Load restore state (upgrades, mission flags).
+✔ Settings tabs respond and persist changes (audio, controls).
+UI / HUD:
+✔ All HUD elements adjust via settings (on/off toggles).
+✔ Control remapping applies (test customizing keys).
+✔ Tutorial can be launched, all sections accessible.
+Screenshot: Pause menu, Settings (all tabs visible).
+Screenshot: Main menu with animated background.
+Audio:
+✔ Engine throttle volume changes with speed.
+✔ Weapon, missile, explosion, shield, hull sounds distinct.
+✔ Spatialization: sounds louder near source.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+9
+<PARSED TEXT FOR PAGE: 10 / 15>
+✔ Cerebral voice spatial ambiguity (panning/silence).
+N/A (listen): Check volume falloff by moving away.
+Horror/Story:
+✔ Scientist logs trigger and can be viewed (audio + text).
+✔ Ghost ship event triggers once (optional).
+✔ Blood/environment props visible in correct areas.
+✔ Cerebral dialog occurs at key points.
+Screenshot: Blood on lab floor, ghost ship in distance.
+Screenshot: Distorted radio static screen (if any).
+✔ Jumpscare events (if any) do not crash the game.
+Performance/Stability:
+✔ No major frame drops in heavy scenes (ambience OK).
+✔ Mobile view (virtual sticks/buttons) is usable.
+✔ No console errors or warnings at runtime.
+✔ Memory stable over 10min play (no leaks).
+✔ Particle counts drop to zero when done (no accumulation).
+Visual Aids
+Figure: System flow – how input drives movement, camera, combat, and leads to AI and mission logic, with UI
+and save interplay.
+Figure: High-level timeline of development phases and tasks (approximated).
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+InputHandler FlightController CameraController CombatSystem ShieldsSystem AIController MissionManager UIManager SaveManager
+2026-01-01 2026-02-01 2026-03-01 2026-04-01 2026-05-01 2026-06-01 2026-07-01
+Core Mechanics (Refine movement, combat)
+Settings & Tutorial
+Asset Modeling (ships, stations)
+Lighting & Materials
+Missions & Progression
+Horror Event Design
+Audio SFX & Music UI Polish & HUD Customization
+Testing & Optimization
+Final Adjustments
+Phase 1 – Foundation
+Phase 2 – Assets & Visuals
+Phase 3 – Gameplay & Content
+Phase 4 – Integration & Audio
+Phase 5 – QA & Bugfix
+Development Phases
+10
+<PARSED TEXT FOR PAGE: 11 / 15>
+Figure: Scan→Hack→Map waypoint flow. The player scans the derelict, hacks the console (unlocking Cerebral’s
+location), then sees Cerebral on the map.
+Reference Sources and Tools
+Asset Sources: Poly Haven (HDRIs, textures, models) is fully CC0【14†L84-L90】. Kenney
+(kenney.nl) provides free game-ready 3D packs (e.g. Space Kit). For audio, Freesound.org has
+CC0/CC-BY sound effects (weapon shots, engine hums). Example: Impact Sounds Kit by Kenney
+(creative commons).
+Licensing: All assets used must be free/commercial (CC0 or CC-BY) to avoid extra costs.
+MCP Endpoints (Info): Gessa and Ludo are AI asset generators. (E.g. Gessa’s MCP: 
+api.gessa.ai/mcp/... ) However, we do not rely on paid models; mention them only as info.
+Priority is on CC0.
+Three.js Techniques: Use MeshStandardMaterial, HDR envmaps (PolyHaven skies), PBR texture
+workflows. For shield glow, a Fresnel shader or wobbling texture can mimic energy fields.
+(Three.js docs and examples provide guidance on environment maps, post-processing, and
+audio: e.g. Three.js PositionalAudio for spatial sound, MeshStandardMaterial for PBR).
+Audio Attenuation: As per physics, sound falls off roughly by distance²【9†L170-L178】. Use an
+exponential or inverse-square falloff for realism (clamped).
+Yes No
+Scan Derelict
+Decrypt Data
+Hack Success?
+Map Waypoint: Cerebral Obtain Firewall Upgrade
+Player travels to Cerebral
+• 
+• 
+• 
+• 
+• 
+11
+<PARSED TEXT FOR PAGE: 12 / 15>
+Final One-Shot Prompts
+Claude Sonnet 5.6 High-Reasoning Prompt
+We will feed Claude the entire improved prototype (with new assets and code) and instruct it as
+follows:
+You are performing a FINAL POLISH on CEREBRAL: THE LAST ASCENT.
+IMPORTANT: Do not rework the core game logic or controls. Preserve the 
+existing flight model, enemy AI, scan/hack mechanics, mission flow, and 
+narrative systems. Focus entirely on integrating the new assets and 
+improvements.
+Attached: full source code of the game (with new models/textures) and all 
+design reference images.
+TASK: Implement and fine-tune the following:
+- **Flight & Combat:** Ensure the ship maintains cruise inertia (slow 
+damping). Keep WASD, mouse steering as-is. Reduce weapon spread and use lead 
+prediction for homing missiles. Smoothly apply limited recoil (visual only). 
+Verify every hit triggers the correct effect (shield ripple, sparks, hull 
+hit) and corresponding sound.
+- **Art Integration:** Replace placeholders with the provided 3D models 
+(player, enemies, stations, wrecks). Apply the given color palette: player/
+shields cyan, Drone cyan, Soldier amber, Elite purple, Warden/Cerebral red. 
+Confirm materials (metallic hulls, dark glass, emissive thrusters).
+- **Environment:** Populate space with asteroids and debris fields per the 
+references. Use environment HDRIs or skyboxes from Poly Haven for cosmic 
+lighting. Light ships and stations with a strong key light and rim fill to 
+accentuate shapes. Use ambient occlusion for depth. Ensure stations and labs 
+are built from modules (corridor segments, consoles).
+- **Shields & Damage:** Keep the multi-cycle shield system. Only improve 
+visuals: show a transparent energy shell on shielded enemies (cyan glow). 
+When hit, display a ripple/flash. Mark weak components by blinking red. When 
+generators down, show “SHIELD GENERATOR DOWN X/N” then a short collapse 
+effect. Hull hits produce sparks and localized scorch marks. 
+- **UI & Audio:** Ensure HUD elements are legible (health, shield, energy, 
+target lock). Implement HUD customization as per Settings. Audio: spatialize 
+all sound. Link sounds to objects (missile hiss from missile, engine hum from 
+player). Adjust volumes so distant sounds fade (e.g. 1/(1+(d/20)^2) model). 
+Use distinct sounds for shield vs hull impacts. Confirm voice captions sync.
+- **Horror:** Emphasize psychological horror. Use the references for ghost 
+ship encounter and bloodstains. Place occasional blood trails (dark red 
+stains) in labs. Program the ghost ship to flicker its lights on/hard off and 
+play a corrupt log. Trigger subtle anomalies (e.g. panel lights flickering in 
+sync with heartbeats). Deploy jumpscares very rarely (unexpected figure in 
+shadows).
+12
+<PARSED TEXT FOR PAGE: 13 / 15>
+- **Cerebral Planet:** Do not spawn it early. After scanning the derelict and 
+successful hack, add a map marker "Cerebral". Make the planet visible only 
+then, far away. Use new large structure model with red/cyan network visuals.
+- **Dialogue:** Use internal voice for Cerebral (no speaker labels). Sync 
+captions exactly with speech. Play Cerebral lines with slight reverb and EQ 
+as if in the player’s head. 
+- **Testing:** After changes, test all features in order: movement, combat 
+(all weapons/shields), scan/hack, missions, safe point upgrades, save/load, 
+menus. Fix any regressions. The game should feel like the same *Cerebral* but 
+**much more polished and immersive**.
+Final goal: The updated build must appear as a complete AAA-quality space 
+action-horror demo. Polish graphics, sound, UI, and story; preserve all 
+existing gameplay. Use reference images as a design bible, not as templates 
+to copy.
+Jabali From-Scratch Brief
+Once the reference build is ready, we will hand it to Jabali to re-implement from scratch. The brief for
+Jabali (in Sonnet 5.6) should emphasize:
+Engine: Use Three.js r128 or later (for WebGL, mobile).
+Project: Cerebral: The Last Ascent – 3D space action/sci-fi horror.
+Core: Recreate the above reference build exactly (with your own code). Follow the
+finalized design, assets, and behaviors from the reference. Do not add major new
+features.
+Focus: Polish flight physics, combat, enemy AI, scanning, hacking, missions as per the
+reference. Integrate all provided assets (models, textures, audio) and UI.
+Deliverable: A standalone Three.js web game indistinguishable from the reference.
+Follow modern code practices (modular architecture as per entity diagram). Ensure
+performance and mobile support. 
+Tables and Checklists
+1. Tiered Deliverables
+Tier Task Complexity Risk
+P0
+Flight cruise fix, weapon hit feedback, dialogue sync, narrative rule
+fixes, HUD/customization, tutorial, save/load, first mission flow High High
+P1
+3D models for ships & structures, Cerebral & ghost ship models,
+improved lighting/materials, audio revamp High Med
+P2
+Asset/Color bibles, modular level kit creation, mission variety
+expansion, horror events, UI polish Medium Low
+P3
+Performance tuning, bug fixing, final QA (automated tests &
+screenshot review) Medium Low
+13
+<PARSED TEXT FOR PAGE: 14 / 15>
+2. Asset Bible Summary
+Asset ID Role Palette (Primary) Emissive
+Accent
+Polycount Damage
+Player_Ship Hero fighter #1C1C1C (gunmetal)
++ #5CE1E6 (cyan)
+Engine glow
+(cyan)
+5k Laser scorch,
+dents
+Drone
+Small
+attacker
+#1C1C1C + #A3E1FF
+(light cyan)
+Cyan
+engines
+2k Sparks, flicker
+Soldier Medium
+attacker
+#202020 + #FFD580
+(amber)
+Amber
+lights 4k Smoldering
+panels
+Elite Advanced
+attacker
+#202020 + #E580FF
+(violet) Purple veins 4k Electrical arcs
+Warden Boss fighter #202020 + #FF4C4C
+(red) Red cores 8k Explosive
+ruptures
+Station
+Safe hub/
+dock #303030 + #5CE1E6
+Teal
+beacons Static
+Critical
+damage
+Lab Research
+hub #404040 + #A3E1FF
+Blue
+monitors
+Static
+Broken
+equipment
+Refuge Survivor area #505050 + #88AA88
+Green
+lighting Static
+Debris,
+bodies
+Abandoned Derelict #2C2C2C + #5C2C2C None Static Rust, holes
+Cerebral AI planet #000000 + #FF4C4C
+Cyan
+network Very High Massive Arc
+flash
+GhostShip Haunted
+wreck #000000 + #5CE1E6
+Sporadic
+red 6k Disappears
+Asteroid Space rocks #555555 + #888888 None Varies Chips off
+Debris Misc
+fragments match region None Varies Static
+3. Color Palette
+Color Hex Usage
+Player/Cyan #5CE1E6 Player ship, UI, shields
+Drone/Cyan #A3E1FF Drone accents
+Amber (Soldier) #FFD580 Soldier accents, warnings
+Purple (Elite) #E580FF Elite accents
+Red (Warden/Cerebral) #FF4C4C Warden/Cerebral lights
+Steel (Neutral) #808080 Station/exteriors
+14
+<PARSED TEXT FOR PAGE: 15 / 15>
+Color Hex Usage
+White (Lab) #FFFFFF Lab lights, text
+Green (Refuge) #88AA88 Safehouse lights
+Dark Gray #202020 Hull base color
+Black #000000 Void background, deep AI
+Light Gray #CCCCCC HUD outlines
+Each color should appear only in its role: e.g. blue/cyan for player and tech, red/orange for danger, 
+neutrals (white/grey) for environment. 
+4. QA Checklist (Summarized)
+Movement: OK drift vs brake, collision-free.
+Combat: OK hit detection, shield/hull feedback, missile warnings.
+UI/Controls: OK HUD clarity, settings apply, tutorial works.
+Story: OK logs playable, Cerebral pace correct, no spoilers.
+Audio: OK spatial cues, correct sound per action.
+Horror: OK ghost ship triggers, blood visuals, tension builds.
+Performance: OK stable framerate on PC/mobile, no memory leaks.
+Next Steps
+Implement the fixes above in the current project. Attach any missing references (e.g. final 3D
+models, audio files). 
+Playtest fully: record short videos if possible to catch any remaining issues.
+Review this blueprint and confirm no items are missing. 
+Use the Claude prompt to refine the final reference build, then freeze it.
+Prepare the Jabali prompt to begin the clean re-build from scratch.
+All required assets (GLB models, textures, audio clips) and additional screenshots or logs should be
+provided before the Jabali phase. 
+Sources: Free assets (Poly Haven, Kenney, Freesound), Three.js docs, and game design references on
+psychological horror【7†L161-L169】【14†L84-L90】 were used to inform this plan.
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+5. 
+15
