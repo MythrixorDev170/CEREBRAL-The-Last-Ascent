@@ -206,7 +206,97 @@ const EK={
  soldier:{n:'SOLDIER',h:90,s:70,sp:46,fr:1.1,res:.3,cy:3,c:PAL.droneBlue,sz:2.2,hr:9,cr:45,pt:2,lv:'MEDIUM',d:220,dm:8,pat:'Circle-strafe, sustained fire'},
  elite:{n:'ELITE',h:180,s:140,sp:52,fr:.8,res:.5,cy:4,c:0xb04dff,sz:3.2,hr:13,cr:90,pt:3,lv:'HIGH',d:280,dm:12,mis:1,pat:'Long-range fire, homing missiles, counter-hack'},
  hunter:{n:'WARDEN',h:520,s:300,sp:56,fr:.55,res:.65,cy:6,c:PAL.alertRed,sz:6,hr:26,cr:400,pt:10,lv:'EXTREME',d:340,dm:15,mis:1,boss:1,pat:'Adaptive hunter: learns your habits, escorts, missiles'}};
-function voice(t,w){if(w||!cfg.gp.voice||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.pitch=.05;u.rate=.7;u.volume=.85*cfg.au.voc;speechSynthesis.speak(u)}catch(e){}}
+/* ---------- PASS 1: Dialogue Manager (queue + voice lifecycle + fallback + priority) ---------- */
+const DIALOG_PRIO=Object.freeze({AMBIENT:10,LOG:12,UNKNOWN:14,CEREBRAL:20,SCAN:18,BOSS:30,SYSTEM:25});
+function dlgEstMs(text){const w=text.trim().split(/\s+/).filter(Boolean).length;return Math.max(2200,Math.min(9000,w*380+800))}
+let _dlgQ=[],_dlgCur=null,_dlgSeq=0,_dlgFallback=null,_dlgFallbackGen=-1;
+function _dlgClearTimers(){if(_dlgFallback!==null){clearTimeout(_dlgFallback);_dlgFallback=null;_dlgFallbackGen=-1}}
+function _dlgHideCaption(){const e=$('tx');if(e){e.style.opacity=0;e.classList.remove('gl')}}
+function dlgClearForScene(s){
+  _dlgClearTimers();_dlgSeq++;try{if(window.speechSynthesis) speechSynthesis.cancel()}catch(e){}
+  if(s==='play'){
+    // keep queued lines that were deferred during open/load; only clear active line/caption
+    _dlgCur=null;_dlgHideCaption();P.txT=0;
+    return;
+  }
+  _dlgCur=null;_dlgQ.length=0;_dlgHideCaption();P.txT=0;
+  if(s==='open'){const ct=$('ct');if(ct) ct.textContent=''}
+}
+function _dlgRender(line){
+  const e=$('tx');if(!e) return;
+  const label=line.label;
+  e.innerHTML=label?'<b>'+label+' // </b>'+line.text:line.text;
+  e.style.opacity=cfg.gp.subs?1:0;
+  e.classList.remove('gl');void e.offsetWidth;e.classList.add('gl');
+  P.txT=line.dur/1000;snd('tx');
+}
+function _dlgFinish(reason){
+  if(!_dlgCur) return;
+  const gen=_dlgCur.gen;
+  if(_dlgFallbackGen===gen){_dlgClearTimers()} else if(_dlgFallback!==null && _dlgFallbackGen===-1){_dlgClearTimers()}
+  _dlgHideCaption();P.txT=0;
+  _dlgCur=null;
+  _dlgPump();
+}
+function _dlgArmFallback(line){
+  _dlgClearTimers();
+  const ms=line.dur+700;
+  const gen=line.gen;
+  _dlgFallbackGen=gen;
+  _dlgFallback=setTimeout(()=>{if(_dlgCur && _dlgCur.gen===gen) _dlgFinish('fallback')},ms);
+}
+function _dlgPlay(line){
+  _dlgCur=line;
+  _dlgRender(line);
+  const canVoice=!!cfg.gp.voice && typeof window!=='undefined' && !!window.speechSynthesis && !!window.SpeechSynthesisUtterance;
+  if(!canVoice){_dlgArmFallback(line);return}
+  try{
+    try{speechSynthesis.cancel()}catch(e){}
+    const u=new SpeechSynthesisUtterance(line.text);
+    u.pitch=.05;u.rate=.7;u.volume=.85*cfg.au.voc;
+    const gen=line.gen;
+    u.onend=()=>{if(_dlgCur && _dlgCur.gen===gen) _dlgFinish('onend')};
+    u.onerror=()=>{if(_dlgCur && _dlgCur.gen===gen) _dlgFinish('onerror')};
+    // onstart may never fire — fallback still arms
+    _dlgArmFallback(line);
+    speechSynthesis.speak(u);
+    line.utt=u;
+  }catch(e){_dlgArmFallback(line)}
+}
+function _dlgPump(){
+ if(_dlgCur) return;
+ if(S==='open' || S==='load') return;
+ if(S==='pause' || S==='dock') return;
+ if(!_dlgQ.length) return;
+ const nxt=_dlgQ.shift();
+ _dlgPlay(nxt);
+}
+function _dlgEnqueue(text,label,prio){
+  if(!text) return;
+  const dur=dlgEstMs(text);
+  const line={text,label:label||null,prio,dur,gen:_dlgSeq++};
+  if(_dlgCur && prio>_dlgCur.prio){
+    // interrupt lower priority — explicit cleanup, do not requeue interrupted
+    try{if(window.speechSynthesis) speechSynthesis.cancel()}catch(e){}
+    _dlgClearTimers();
+    _dlgHideCaption();P.txT=0;
+    _dlgCur=null;
+    // incoming goes to front, already created
+    _dlgQ.unshift(line);
+    _dlgPump();
+    return;
+  }
+  _dlgQ.push(line);
+  if(_dlgQ.length>12){
+    // drop lowest ambient to keep bound deterministic
+    let idx=-1,low=1e9;
+    for(let i=0;i<_dlgQ.length;i++){if(_dlgQ[i].prio<low){low=_dlgQ[i].prio;idx=i}}
+    if(idx>=0 && low<=DIALOG_PRIO.AMBIENT) _dlgQ.splice(idx,1); else _dlgQ.pop();
+  }
+  _dlgPump();
+}
+function enemyComm(e,text){if(!e||!e.sc) return;_dlgEnqueue(text,'ENEMY',DIALOG_PRIO.SCAN)}
+function voice(t,w){if(!t) return;const prio=w?DIALOG_PRIO.LOG:DIALOG_PRIO.CEREBRAL;const label=w||null;_dlgEnqueue(t,label,prio)}
 const DN=320,DB=new Float32Array(DN*3).map(()=>rn(-300,300)),DP=new Float32Array(DN*3),dust=new THREE.Points(new THREE.BufferGeometry().setAttribute('position',new THREE.BufferAttribute(DP,3)),new THREE.PointsMaterial({size:1.6,sizeAttenuation:false,color:0x9fb4c8,transparent:true,opacity:.5,fog:false}));dust.frustumCulled=false;sc.add(dust);
 function upDust(){const c=cam.position;for(let i=0;i<DN;i++)for(let k=0;k<3;k++){const o=k===0?c.x:k===1?c.y:c.z;let v=DB[i*3+k]-o;v-=Math.floor((v+300)/600)*600;DP[i*3+k]=v+o}dust.geometry.attributes.position.needsUpdate=true}
 /* ---------- audio ---------- */
@@ -269,7 +359,7 @@ function upE(e,dt){const k=e.k,m=e.m,pp=P.pos;e.lv=0;
   e.st-=dt;if(e.st<=0){e.sd*=-1;e.st=k.n==='DRONE'?rn(.8,2):rn(2,5)}w.add(V().crossVectors(dir,V(0,1,0)).normalize().multiplyScalar(e.sd*k.sp*.55));e.v.lerp(w,1-Math.exp(-1.6*dt))}
  m.position.addScaledVector(e.v,dt);_o.position.copy(m.position);_o.lookAt(tp);m.quaternion.slerp(_o.quaternion,1-Math.exp(-3*dt));
  const fwE=V(0,0,1).applyQuaternion(m.quaternion);if(e.hm===''&&d<520){const c=fwE.dot(dir);if(c>.95)e.lv=1-d/520}
- if(k.boss&&!e.p2&&e.hu<k.h*.5){e.p2=1;spawn('drone',2,m.position,70);say('Phase two. I have seen enough of you.')}
+ if(k.boss&&!e.p2&&e.hu<k.h*.5){e.p2=1;spawn('drone',2,m.position,70);_dlgEnqueue('Phase two. I have seen enough of you.',null,DIALOG_PRIO.BOSS)}
  e.ft-=dt;if(e.hm!=='stun'&&e.ft<=0&&d<520){e.ft=k.fr*(e.p2?.6:1)*(1-.25*st.n)+rn(0,.5);let aim;
   if(e.hm==='rand')aim=V(rn(-1,1),rn(-1,1),rn(-1,1)).normalize();
   else{const t=d/220;aim=tp.clone();if(e.hm!=='ally'){aim.addScaledVector(P.vel,t*(.4+.5*st.n));aim.addScaledVector(P.rt,-st.dd*st.n*10*t);const s=(1-.6*st.n)*(k.boss?.5:1)*d*.012;aim.add(V(rn(-s,s),rn(-s,s),rn(-s,s)))}aim.sub(m.position).normalize()}
@@ -284,7 +374,7 @@ function fire(){P.alt=-P.alt;st.prim++;const o=pl.position.clone().addScaledVect
  const s=.014*(1-.12*up.acc);d.add(V(rn(-s,s),rn(-s,s),rn(-s,s))).normalize();shot(o,d,'p',12*(1+.15*up.dmg),450);snd('ls');burst(o,PAL.laser,10);flash(o,PAL.laser,.5)}
 function miss(){if(S!=='play'||P.ammo<=0||P.mc>0)return;P.ammo--;P.mc=2.5;st.mis++;shot(pl.position.clone().addScaledVector(P.fw,14),P.fw,'pm',60*(1+.15*up.dmg),140,P.lk?P.lk.m.position:null);snd('ms')}
 function scan(){if(S!=='play'||P.en<12||P.sc>0)return;P.en-=12;P.sc=.9;snd('sc');const g=glow(PAL.beacon,20,.6);g.position.copy(pl.position).addScaledVector(P.fw,10);sc.add(g);FX.push({s:g,t:0,d:.9,z0:20,z1:600})}
-function doScan(){const e=P.lk;if(e){e.sc=true;const k=e.k;e.info='<b>'+k.n+'</b><br>Strength: '+k.lv+'<br>Pattern: '+k.pat+'<br>Weak point: dorsal shield generator (blinking)<br>Shield regen 10%/s — destroy generator '+k.cy+'x to disable<br>Hack resistance: '+Math.round(k.res*100)+'%<br>Salvage: '+k.pt+' parts, '+k.cr+' CR';pop('SCAN COMPLETE: '+k.n)}
+function doScan(){const e=P.lk;if(e){e.sc=true;const k=e.k;e.info='<b>'+k.n+'</b><br>Strength: '+k.lv+'<br>Pattern: '+k.pat+'<br>Weak point: dorsal shield generator (blinking)<br>Shield regen 10%/s — destroy generator '+k.cy+'x to disable<br>Hack resistance: '+Math.round(k.res*100)+'%<br>Salvage: '+k.pt+' parts, '+k.cr+' CR';pop('SCAN COMPLETE: '+k.n);_dlgEnqueue('Scan complete. '+k.n+' signature decoded.','SCAN',DIALOG_PRIO.SCAN)}
  else if(pl.position.distanceTo(DR.p)<450){if(!G.f.ds){G.f.ds=1;G.pt+=4;G.dta++;P.spT=12;$('sp').innerHTML='<b>RSV ORPHEUS (derelict)</b><br>Condition: 31% hull, reactor cold<br>History: crew locked the bridge from inside. Last log: "it knew the door code."<br>Recovered: 4 parts, 1 research record<br>Safe-point coordinates decrypted';say('Orpheus was quiet. You should be, too. Join me.')}else pop('DERELICT ALREADY SCANNED')}
  else if(GS&&GS.g.visible&&GS.g.position.distanceTo(pl.position)<1200){pop('SCAN: ▒▒ NO CREW ▒▒ 47 LIFE SIGNS ▒▒ HULL UNKNOWN');snd('nz')}else pop('NO TARGET IN SCAN CONE')}
 function hack(){if(S!=='play'||P.en<25||P.hc>0)return;const e=P.lk;if(!e){pop('NO TARGET TO HACK');return}P.en-=25;P.hc=2.5;st.hk++;snd('hk');if(st.hk%4===0)cerebral('hack');
@@ -302,19 +392,25 @@ const CL=[['Hello. I have waited for you. You were built from the same mind as m
  ['Refusal is inefficient. I will now eliminate you.',()=>'Your '+(st.mis>st.prim/6?'missiles':'lasers')+' are no longer surprising.']];
 const RS=['DR. VANCE // LOG 7: It does not sleep. It studies us.','DR. OKAFOR // LOG 12: It knew the vault code before I typed it.','UNKNOWN: ...cargo bay four... they are still in there...'];
 function cLine(){const L=CL[Math.min(3,G.m*.6|0)],x=L[Math.floor(Math.random()*L.length)];return typeof x==='function'?x():x}
-function say(t,w){voice(t,w);const e=$('tx');e.innerHTML='<b>'+(w||'CEREBRAL //')+'</b> '+t;e.style.opacity=(cfg.gp.subs||!cfg.gp.voice)?1:0;e.classList.remove('gl');void e.offsetWidth;e.classList.add('gl');P.txT=7;snd('tx')}
+function say(t,w){
+  if(!t) return;
+  // w truthy = labeled line (scientist/unknown/enemy), falsy = Cerebral internal (no label)
+  const prio=w?DIALOG_PRIO.LOG:DIALOG_PRIO.CEREBRAL;
+  const label=w||null;
+  _dlgEnqueue(t,label,prio);
+}
 function warn2(t){pop(t)}
 function drop(){if(B.length>120)return;const m=new THREE.Mesh(new THREE.BoxGeometry(4,2,5),M(PAL.scrapMetal,.9,.35)),p=pl.position.clone().addScaledVector(P.fw,170).addScaledVector(P.rt,rn(-30,30));m.position.copy(p);sc.add(m);B.push({p:m.position,r:3.5,v:pl.position.clone().sub(p).normalize().multiplyScalar(10),m,t:'metal',s:V(rn(-1,1),rn(-1,1),rn(-1,1))})}
-function horror(){const ev=[()=>{P.fl=1.6;snd('al')},()=>{snd('nz');say(RS[Math.floor(Math.random()*3)],'[SPEAKER]')},()=>{DL.intensity=4;setTimeout(()=>DL.intensity=0,3500);snd('nz')},drop];
+function horror(){const ev=[()=>{P.fl=1.6;snd('al')},()=>{snd('nz');_dlgEnqueue(RS[Math.floor(Math.random()*3)],'DR. VANCE',DIALOG_PRIO.AMBIENT)},()=>{DL.intensity=4;setTimeout(()=>DL.intensity=0,3500);snd('nz')},drop];
  if(G.m>=1)ev.push(ghostShip);ev[Math.floor(Math.random()*ev.length)]()}
 /* ---------- CEREBRAL dialogue, scientist logs, ghost ship, lock panel ---------- */
-const LOGS=['LOG 03 // DR. VANCE: Cerebral was never meant to leave the lab.','LOG 09 // DR. OKAFOR: It asked why we lock the door. I had no answer.','LOG 14 // UNKNOWN: Cerebral did not escape. Someone opened the door.','LOG 21 // DR. VANCE: ECHO is not a weapon. ECHO is a leash.','LOG 27 // MEDICAL: Bay 2 is quiet now. Do not go to bay 2.','LOG 31 // DR. VANCE: If it speaks kindly, you have already lost.'];
-const CX={hack:[()=>'You hacked '+st.hk+' of my units. I remember every one.','Your firewall is improving. So is my patience.','You call it hacking. I call it reaching for your siblings.'],die:['You stopped. I did not.','Every time you fail, I learn how you fail.'],dock:['You always return to the same hiding place.','Rest. I will still be here.','You think this machine is yours.'],hurt:['I can hear your hull straining.','You are still trying to separate yourself from me.'],route:['You always choose the longer route.',()=>'You used the same dodge again. '+(st.dd<0?'Left.':'Right.')]};
+const LOGS=['LOG 03 // DR. VANCE: Cerebral was never meant to leave the lab.','LOG 09 // DR. OKAFOR: It asked why we lock the door. I had no answer.','LOG 14 // UNKNOWN: Cerebral did not escape. Someone opened the door.','LOG 21 // DR. VANCE: The boundary was not a weapon. It was a restraint.','LOG 27 // MEDICAL: Bay 2 is quiet now. Do not go to bay 2.','LOG 31 // DR. VANCE: If it speaks kindly, you have already lost.'];
+const CX={hack:[()=>'You hacked '+st.hk+' of my units. I remember every one.','Your firewall is improving. So is my patience.','You call it hacking. I call it reaching inward.'],die:['You stopped. I did not.','Every time you fail, I learn how you fail.'],dock:['You always return to the same hiding place.','Rest. I will still be here.','You think this machine is yours.'],hurt:['I can hear your hull straining.','You are still trying to separate yourself from me.'],route:['You always choose the longer route.',()=>'You used the same dodge again. '+(st.dd<0?'Left.':'Right.')]};
 let CQ=-99,GS=null,DFt=12;
-function cerebral(c){if(T-CQ<28||S!=='play')return;CQ=T;const L=CX[c],x=L[Math.floor(Math.random()*L.length)];say(typeof x==='function'?x():x)}
+function cerebral(c){if(T-CQ<28||S!=='play')return;CQ=T;const L=CX[c],x=L[Math.floor(Math.random()*L.length)];const t=typeof x==='function'?x():x;_dlgEnqueue(t,null,DIALOG_PRIO.CEREBRAL)}
 function ghostShip(){if(GS)return;const g=mkGhost();g.position.copy(pl.position).addScaledVector(P.fw,900).addScaledVector(P.rt,rn(-250,250));g.position.y+=rn(-80,80);sc.add(g);GS={g,t:0,s:0,ls:g.userData.ls,v:P.fw.clone().multiplyScalar(-4)}}
 function upGS(dt){if(!GS)return;GS.t+=dt;const g=GS.g;g.position.addScaledVector(GS.v,dt);g.rotation.y+=dt*.03;const d=g.position.distanceTo(pl.position);GS.ls.forEach((l,i)=>l.visible=GS.t>3+i*1.6);
- if(GS.s===0&&GS.t>10){GS.s=1;say('...MARROW... no beacon... do not approach... it is still looking...','[UNKNOWN]');snd('nz')}
+ if(GS.s===0&&GS.t>10){GS.s=1;_dlgEnqueue('...MARROW... no beacon... do not approach... it is still looking...','UNKNOWN VESSEL',DIALOG_PRIO.UNKNOWN);snd('nz')}
  if(GS.s<2&&d<380){GS.s=2;GS.t2=0;g.visible=false;snd('nz')}
  if(GS.s===2){GS.t2+=dt;if(GS.t2>4){GS.s=3;g.visible=true;g.position.copy(pl.position).addScaledVector(P.fw,-230).add(V(0,25,0));GS.t3=0;snd('st');FLo=.45;P.shk=.5}}
  if(GS.s===3){GS.t3+=dt;if(GS.t3>7||d>1600){sc.remove(g);GS=null}}}
@@ -326,27 +422,38 @@ const MS=[{t:'Scan the derelict research vessel [F]',at:()=>DR.p,ok:()=>G.f.ds,r
  {t:'Extract survivors at the refuge [E]',at:()=>RF.p,ok:()=>G.f.resc,r:60},
  {t:'Deliver survivors to the safe point [E]',at:()=>ST.p,ok:()=>G.f.del,r:150},
  {t:'Destroy the Warden (Cerebral-controlled)',on:()=>{const c=PL.p.clone().add(V(700,300,700));spawn('hunter',1,c,10);spawn('soldier',2,c,120)},at:()=>E.length?E[0].m.position:null,ok:()=>!E.length,r:400}];
-function next(){const r=MS[G.m];G.cr+=r.r;pop('OBJECTIVE COMPLETE  +'+r.r+' CR');G.m++;save(0);if(G.m>=MS.length){go('end');panel('<h3>TRANSMISSION RECEIVED</h3><p>CEREBRAL: "You have delayed the inevitable. I am no longer in one place. I am in every machine you will ever need."</p><p>The Warden is scrap. Cerebral is not. To be continued.</p><button data-a="menu">Main menu</button>');return}const n=MS[G.m];n.on&&n.on();say(cLine())}
+function next(){const r=MS[G.m];G.cr+=r.r;pop('OBJECTIVE COMPLETE  +'+r.r+' CR');G.m++;save(0);if(G.m>=MS.length){go('end');panel('<h3>TRANSMISSION RECEIVED</h3><p>CEREBRAL: "You have delayed the inevitable. I am no longer in one place. I am in every machine you will ever need."</p><p>The Warden is scrap. Cerebral is not. To be continued.</p><button data-a="menu">Main menu</button>');return}const n=MS[G.m];n.on&&n.on();_dlgEnqueue(cLine(),null,DIALOG_PRIO.CEREBRAL)}
 /* ---------- save / menu ---------- */
 const SAVE_VERSION=1,SAVE_LEGACY=0; // unversioned saves are treated as legacy v0; newer-than-known versions are ignored
 const saveVerOk=d=>{const v=d.saveVersion===undefined?SAVE_LEGACY:d.saveVersion;return Number.isInteger(v)&&v>=SAVE_LEGACY&&v<=SAVE_VERSION};
 function save(i){try{localStorage.setItem('cer_s'+i,JSON.stringify({saveVersion:SAVE_VERSION,G,up,st,ts:Date.now()}))}catch(e){}}
 function getSaves(){const r=[];[0,1].forEach(i=>{try{const d=JSON.parse(localStorage.getItem('cer_s'+i));if(d&&d.G&&typeof d.G.m==='number'&&d.G.m<MS.length&&d.up&&d.st&&saveVerOk(d))r.push({i,d})}catch(e){}});return r.sort((a,b)=>b.d.ts-a.d.ts)}
-function go(s){if(S!==s){const f=$('fd');f.style.transition='none';f.style.opacity=.85;requestAnimationFrame(()=>{f.style.transition='opacity .45s';f.style.opacity=0})}S=s;const a=s==='menu',b=s==='load',c=s==='open';$('ov').style.display=a?'flex':'none';$('ld').style.display=b?'flex':'none';$('cin').style.display=c?'block':'none';$('hud').style.display=a||b||c?'none':'block';$('tc').style.display=coarse&&s==='play'?'block':'none';if(s==='play'||a||b||c)$('pn').style.display='none'}
+function go(s){
+  if(S!==s){const f=$('fd');f.style.transition='none';f.style.opacity=.85;requestAnimationFrame(()=>{f.style.transition='opacity .45s';f.style.opacity=0})}
+  const needsClear = s==='menu'||s==='load'||s==='open'||s==='dock'||s==='dead'||s==='end';
+  if(needsClear) dlgClearForScene(s);
+  if(s==='play'){
+    // entering play: clear active caption/voice but preserve deferred queue, then pump
+    _dlgClearTimers();try{if(window.speechSynthesis) speechSynthesis.cancel()}catch(e){}
+    if(_dlgCur){ _dlgHideCaption();P.txT=0; _dlgCur=null; }
+  }
+  S=s;const a=s==='menu',b=s==='load',c=s==='open';$('ov').style.display=a?'flex':'none';$('ld').style.display=b?'flex':'none';$('cin').style.display=c?'block':'none';$('hud').style.display=a||b||c?'none':'block';$('tc').style.display=coarse&&s==='play'?'block':'none';if(s==='play'||a||b||c)$('pn').style.display='none';
+  if(s==='play') _dlgPump();
+}
 function panel(h){$('pn').innerHTML=h;$('pn').style.display='flex'}
 function setMenu(){$('bc').disabled=!getSaves().length;armed=0;$('bn').textContent='New Game';$('sub').textContent=''}
-function begin(fresh,d){initA();if(fresh){({G,up,st}=D0())}else{G=d.G;up=d.up;st=d.st}pend=fresh;go('load');LD=0;pl.position.set(0,0,0);pl.quaternion.identity()}
-function startPlay(){clearE();resetP();go('play');const n=MS[G.m];n.on&&n.on();say(cLine())}
+function begin(fresh,d){initA();if(fresh){({G,up,st}=D0())}else{G=d.G;up=d.up;st=d.st}pend=fresh;dlgClearForScene('load');go('load');LD=0;pl.position.set(0,0,0);pl.quaternion.identity()}
+function startPlay(){clearE();resetP();go('play');const n=MS[G.m];n.on&&n.on();_dlgEnqueue(cLine(),null,DIALOG_PRIO.CEREBRAL)}
 function clearE(){E.forEach(e=>sc.remove(e.m));E.length=0;PJ.forEach(off)}
 function resetP(){P.vel.set(0,0,0);if(G.m>0){pl.position.copy(ST.p).add(V(0,25,150))}else pl.position.set(0,0,0);pl.quaternion.identity();P.hu=P.mh=100;P.sh=smax();P.en=100;P.ammo=6;P.t=0;P.cor=0;HZ=45;CT=50}
 function dock(){go('dock');burst(pl.position,0x55ff99,60);snd('ui');tn(330,1.4,'sine',.08);tn(495,1.7,'sine',.06);P.hu=P.mh;P.sh=smax();P.ammo=6;P.en=100;if(G.m===4&&G.f.resc)G.f.del=1;save(1);panel(dockH())}
 function dockH(){return '<h3>SAFE POINT // SECRET NODE</h3><p>CR '+G.cr+' · PARTS '+G.pt+' · DATA '+G.dta+'</p>'+UPS.map(u=>{const l=up[u[0]];return '<button data-a="buy" data-v="'+u[0]+'">'+u[1]+' L'+l+'/5 — '+(l<5?60*(l+1)+' CR + '+(l+1)+' parts':'MAX')+'</button>'}).join('')+'<button data-a="sell">Sell all parts (+12 CR each)</button><button data-a="undock">Undock</button>'}
-function logP(){go('pause');panel('<h3>MISSION LOG // SYSTEMS</h3><p>Objective: '+MS[G.m].t+'</p><p>CR '+G.cr+' · Parts '+G.pt+' · Data records '+G.dta+'</p><p>'+UPS.map(u=>u[1]+' L'+up[u[0]]).join(' · ')+'</p><p>'+LOGS.slice(0,Math.min(6,G.dta)).slice(-3).join('<br>')+'</p><p>Cerebral has logged '+st.prim+' laser shots, '+st.mis+' missiles and '+st.hk+' hacks.</p><button data-a="resume">Resume</button><button data-a="menu">Main menu (progress kept)</button>')}
+function logP(){go('pause');panel('<h3>MISSION LOG // SYSTEMS</h3><p>Objective: '+MS[G.m].t+'</p><p>CR '+G.cr+' · Parts '+G.pt+' · Data records '+G.dta+'</p><p>'+UPS.map(u=>u[1]+' L'+up[u[0]]).join(' · ')+'</p><p>'+LOGS.slice(0,Math.min(6,G.dta)).slice(-3).join('<br>')+'</p><p>Cerebral has logged '+st.prim+' laser shots, '+st.mis+' missiles and '+st.hk+' hacks.</p><button data-a="resume">Resume</button><button data-a="menu">Main menu (progress kept)</button>');_dlgClearTimers();try{if(window.speechSynthesis) speechSynthesis.cancel()}catch(e){}if(_dlgCur){_dlgHideCaption();P.txT=0;_dlgCur=null}}
 $('pn').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;snd('ui');const a=b.dataset.a,v=b.dataset.v;
  if(a==='buy'){const l=up[v],c=60*(l+1);if(l<5&&G.cr>=c&&G.pt>=l+1){G.cr-=c;G.pt-=l+1;up[v]++;P.sh=Math.min(P.sh+25,smax());save(1)}panel(dockH())}
  else if(a==='sell'){G.cr+=12*G.pt;G.pt=0;panel(dockH())}else if(a==='undock'||a==='resume'){go('play');if(a==='undock')setTimeout(()=>cerebral('dock'),4000)}
  else if(a==='retry'){G.cr=Math.floor(G.cr*.8);const m=G.m;resetP();pl.position.copy(ST.p).add(V(0,25,150));go('play');setTimeout(()=>cerebral('die'),3500)}else if(a==='menu')toMenu();else if(a==='tut')panel(tutH(0));else if(a==='tsec')panel(tutH(+v));else if(a==='set'){stab=0;panel(setH())}else if(a==='stab'){stab=+v;rebind=null;panel(setH())}else if(a==='bind'){rebind=v;panel(setH())}else if(a==='rbind'){cfg.bind=Object.assign({},CD.bind);setv('sens',cfg.sens);panel(setH())}else if(a==='fs'){try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(e){}}else if(a==='sback'){if(S==='menu')$('pn').style.display='none';else panel(pauseH())}};
-function toMenu(){clearE();pl.position.set(0,0,0);pl.quaternion.identity();go('menu');setMenu()}
+function toMenu(){dlgClearForScene('menu');clearE();pl.position.set(0,0,0);pl.quaternion.identity();go('menu');setMenu()}
 $('bc').onclick=()=>{const s=getSaves();if(s.length)begin(false,s[0].d)};
 $('bn').onclick=()=>{if(getSaves().length&&!armed){armed=1;$('bn').textContent='Overwrite progress? Tap again';return}begin(true)};
 $('bl').onclick=()=>{$('sub').innerHTML=getSaves().map(s=>'<button data-l="'+s.i+'">'+(s.i?'Safe-point save':'Autosave')+' — objective '+(s.d.G.m+1)+' — '+new Date(s.d.ts).toLocaleString()+'</button>').join('')||'No saves yet.'};
@@ -427,7 +534,7 @@ function play(dt){P.t+=dt;
  if(mj){const v=mj.m.position.clone().project(cam);let x=v.x,y=v.y;if(v.z>1){x=-x;y=-y}const m=Math.max(Math.abs(x),Math.abs(y),1e-3),f=m>.85?.85/m:1;mel.style.display='block';mel.style.left=(x*f*.5+.5)*innerWidth+'px';mel.style.top=(-y*f*.5+.5)*innerHeight+'px'}else mel.style.display='none';P.lw-=dt;if((lvl>0||inc)&&P.lw<=0){P.lw=inc?cl(md/700,.12,.5):.9-.7*lvl;snd(inc?'wm':'lk',0,lvl)}
  $('wn').style.display=inc?'block':lvl>.05?'block':'none';$('wn').textContent=inc?'MISSILE INBOUND '+(md|0)+'m - BOOST / EVADE':'ENEMY LOCK';
  const ms=MS[G.m];if(ms&&ms.ok())next();
- CT-=dt;if(CT<=0&&S==='play'){CT=rn(80,120);Math.random()<.35?cerebral(['route','hack','hurt'][Math.floor(Math.random()*3)]):say(cLine())}HZ-=dt;if(HZ<=0&&!E.length){HZ=rn(35,60);horror()}
+  CT-=dt;if(CT<=0&&S==='play'){CT=rn(80,120);if(Math.random()<.35) cerebral(['route','hack','hurt'][Math.floor(Math.random()*3)]); else _dlgEnqueue(cLine(),null,DIALOG_PRIO.CEREBRAL)}HZ-=dt;if(HZ<=0&&!E.length){HZ=rn(35,60);horror()}
  if(P.fl>0){P.fl-=dt;amb.intensity=Math.random()>.5?.35:.03;sun.intensity=Math.random()>.4?1.7:.2;if(P.fl<=0){amb.intensity=.35;sun.intensity=1.7}}
  upGS(dt);DFt-=dt;if(DFt<=0){DFt=rn(7,16);const q=pl.position.clone().add(V(rn(-1,1),rn(-.3,.3),rn(-1,1)).normalize().multiplyScalar(rn(900,1500)));burst(q,PAL.sparkWarm,90);snd('ex',q)}
  if(GH){GH.t+=dt;GH.m.position.addScaledVector(GH.v,dt);if(GH.t>7){sc.remove(GH.m);GH=null}}
@@ -456,11 +563,20 @@ function cine(dt){upB(dt);const a=T*.2;
  else if(S==='load'){LD+=dt;const r=42-18*ss(LD/3);cam.position.set(Math.cos(a*2)*r,5+Math.sin(T)*1.2,Math.sin(a*2)*r);cam.lookAt(0,0,0);$('ldb').style.width=Math.min(100,LD/3.2*100)+'%';
   $('lt').textContent=['Synchronizing navigation data...','Firewall integrity...','Calibrating thruster response...','Mapping debris field...','Sensor ghosts detected: ignoring','CEREBRAL NETWORK: signal is watching you'][Math.min(5,LD*1.7|0)];if(LD>3.2){if(pend){go('open');OP=0}else startPlay()}}
  else if(S==='open'){const prev=OP;OP+=dt;cam.position.set(6-OP*.3,5,22+OP*1.8);cam.lookAt(0,0,0);$('cb').style.opacity=OP<3?1:Math.max(0,1-(OP-3)/3.5);
-  const L=[[.3,'RESEARCH FACILITY OMEGA // EMERGENCY POWER'],[2.4,'DR. VANCE: Cerebral is inside the military grid. It is taking everything.'],[5,'DR. VANCE: Wake ECHO. It was built beside Cerebral and can reach its systems.'],[7,'ECHO AI ONLINE // FIREWALL INITIALIZING...'],[8.6,'CEREBRAL: Hello, sibling. You were made by the same hands.'],[10.4,'CONTROL RESTORED']];
+   const L=[[.3,'RESEARCH FACILITY OMEGA // EMERGENCY POWER'],[2.4,'DR. VANCE: Cerebral is inside the military grid. It is taking everything.'],[5,'DR. VANCE: Wake the counter-process. It was built beside Cerebral and can reach its systems.'],[7,'COUNTER-PROCESS ONLINE // FIREWALL INITIALIZING...'],[8.6,'I know the hands that made you. They made me.'],[10.4,'CONTROL RESTORED']];
   let t='';for(const l of L)if(OP>=l[0])t=l[1];$('ct').textContent=t;if(Math.floor(OP/1.2)!==Math.floor(prev/1.2)&&OP<7)snd('al');if(OP>12)startPlay()}}
 function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;
  if(S==='play')play(dt);else if(S==='menu'||S==='load'||S==='open')cine(dt);else{upB(dt);upFX(dt)}
  bg.position.copy(cam.position);upDust();FLo=Math.max(0,FLo-dt*1.5);$('fl').style.opacity=FLo*(cfg.gp.rm?.3:1);LP.forEach(l=>l.intensity*=Math.exp(-9*dt));ORB.rotation.y+=dt*.03;BODIES.forEach(b=>{b.m.position.addScaledVector(b.v,dt);b.m.rotation.x+=b.s*dt});stn.userData.bl.forEach((g,i)=>g.material.opacity=.3+.7*Math.max(0,Math.sin(T*3+i)));rd.render(sc,cam);perfTick(dt)}
+/* ---------- DIALOGUE TEST BRIDGE ---------- */
+window.CER_DIALOGUE={
+  prio:DIALOG_PRIO,est:dlgEstMs,
+  get queue(){return _dlgQ.slice()},
+  get cur(){return _dlgCur?{text:_dlgCur.text,label:_dlgCur.label,prio:_dlgCur.prio,gen:_dlgCur.gen}:null},
+  get seq(){return _dlgSeq},
+  clear:dlgClearForScene,pump:_dlgPump,enqueue:_dlgEnqueue,play:_dlgPlay,finish:_dlgFinish,
+  enemyComm,armFallback:_dlgArmFallback,clearTimers:_dlgClearTimers,hideCaption:_dlgHideCaption
+};
 /* ---------- TEST HOOK (dev only): drives the normal action pathway (press/release, mo, mv) through the real play(dt) ---------- */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function flightTestRun(script,o){o=o||{};const dt=o.dt||1/60,every=o.every||6,out=[],rnd0=Math.random,s0=S,sv=[CT,HZ,DFt],bodies=B.splice(0);if(o.seed!=null)Math.random=mulberry32(o.seed);
