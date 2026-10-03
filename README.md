@@ -45,3 +45,7 @@ This repository is the **current source baseline** for continued development and
 ## Source provenance
 
 The current `cerebral.html` was uploaded from the project's complete source-code document and represents the current playable baseline.
+
+## Pass 0 (safety net)
+
+See `pass0/PASS0.md`. Results: `pass0_results.json`. Open `cerebral.html?perf=1` for the debug overlay.

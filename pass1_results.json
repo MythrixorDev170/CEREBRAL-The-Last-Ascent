@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "passed": 22,
+  "total": 22,
+  "results": [
+    "D1 queue ordering deterministic",
+    "D2 single active voice+caption at a time",
+    "D3 no stale caption between lines (finish clears)",
+    "D4 fallback prevents deadlock when onend never fires",
+    "D5 onerror recovery advances queue",
+    "D6 onstart never fires still recovers via fallback",
+    "D7 priority interrupt higher preempts lower",
+    "D8 lower does not interrupt higher",
+    "D9 no silent requeue of interrupted line",
+    "D10 cancel does not assume onend (explicit finish)",
+    "D11 voice-disabled still drains queue",
+    "D12 subs off still drains queue",
+    "D13 voice/subs decoupled (voice on subs off still speaks, caption hidden)",
+    "D14 scene transition clears stale dialogue",
+    "D15 opening not cut off (ct sequence before play)",
+    "D16 opening handoff deferred queue",
+    "D17 enemy comm gated by scan",
+    "D18 enemy info gated before scan",
+    "D19 scientist labels not inherit Cerebral identity",
+    "D20 forbidden lexicon absent",
+    "D21 fallback never advances mission",
+    "D22 no overlapping audio (second say does not double speak)"
+  ]
+}

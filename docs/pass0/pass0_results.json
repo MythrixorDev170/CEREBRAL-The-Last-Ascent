@@ -1,0 +1,305 @@
+{
+ "status": "PASS",
+ "passed": 56,
+ "total": 56,
+ "worstCurveDiff": 0,
+ "tolerance": 1e-9,
+ "flightLock": {
+  "ok": true,
+  "hash": "17585cfc351ff6",
+  "expected": "17585cfc351ff6",
+  "regions": [
+   "tune",
+   "evade",
+   "mouse-steering",
+   "touch-stick",
+   "steering-curve",
+   "movement",
+   "camera"
+  ]
+ },
+ "saveSchemaVersion": 1,
+ "visualQA": "Headless equivalence only (no browser/GPU in sandbox): scene graph + materials + lights + HUD element writes compared with baseline at menu, loading, flight and combat; no pixel screenshots taken.",
+ "results": [
+  {
+   "name": "01 syntax: vm.Script + node --check",
+   "pass": true,
+   "detail": "71130 chars"
+  },
+  {
+   "name": "02 existing systems still present",
+   "pass": true,
+   "detail": "23 markers found"
+  },
+  {
+   "name": "03 flight lock verifies (hash matches)",
+   "pass": true,
+   "detail": "hash 17585cfc351ff6 regions tune,evade,mouse-steering,touch-stick,steering-curve,movement,camera"
+  },
+  {
+   "name": "04 lock FAILS on: TUNE drag .55->.56",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "04 lock FAILS on: movement physics edit",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "04 lock FAILS on: marker removed",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "04 lock FAILS on: steering helper ss() edited",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "04 lock FAILS on: default WASD binding edited",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "04 lock FAILS on: evade impulse edit",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "04 control: non-flight edit does NOT trip lock",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "05 TUNE values identical to original constants",
+   "pass": true,
+   "detail": "56 constants; mismatches: []"
+  },
+  {
+   "name": "06 flight source token-identical to original (TUNE/PAL substituted back)",
+   "pass": true,
+   "detail": "regions tune,evade,mouse-steering,touch-stick,steering-curve,movement,camera"
+  },
+  {
+   "name": "07 flight curve vs baseline: idle_rest",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 22 samples"
+  },
+  {
+   "name": "07 flight curve vs baseline: idle_coast",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 42 samples"
+  },
+  {
+   "name": "07 flight curve vs baseline: forward",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 52 samples"
+  },
+  {
+   "name": "07 flight curve vs baseline: forward_boost",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 67 samples"
+  },
+  {
+   "name": "07 flight curve vs baseline: reverse_brake",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 32 samples"
+  },
+  {
+   "name": "07 flight curve vs baseline: lateral",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 57 samples"
+  },
+  {
+   "name": "07 flight curve vs baseline: combined",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 54 samples"
+  },
+  {
+   "name": "07 flight curve vs baseline: evade",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 33 samples"
+  },
+  {
+   "name": "07 flight curve vs baseline: steer_sweep",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 42 samples"
+  },
+  {
+   "name": "07 flight curve vs baseline: touch_stick_sprint",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 42 samples"
+  },
+  {
+   "name": "07 flight curve vs baseline: collision_rock",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 52 samples"
+  },
+  {
+   "name": "07 flight curve vs baseline: collision_metal",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 52 samples"
+  },
+  {
+   "name": "07 flight curve vs baseline: world_bound",
+   "pass": true,
+   "detail": "max abs diff 0 (tol 1e-9), 42 samples"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: idle_rest",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: idle_coast",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: forward",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: forward_boost",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: reverse_brake",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: lateral",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: combined",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: evade",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: steer_sweep",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: touch_stick_sprint",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: collision_rock",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: collision_metal",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "08 in-game test hook == reference driver: world_bound",
+   "pass": true,
+   "detail": "max abs diff 0"
+  },
+  {
+   "name": "09 hook uses TUNE-driven camera + restores game state",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "10 PAL: scene graph colors/materials/lights identical to baseline",
+   "pass": true,
+   "detail": "458 scene objects compared"
+  },
+  {
+   "name": "11 PAL: every replaced literal accounted for, none left behind",
+   "pass": true,
+   "detail": "36 PAL entries; problems []"
+  },
+  {
+   "name": "12 legacy (unversioned) save loads in modified AND baseline",
+   "pass": true,
+   "detail": "saves [{\"i\":1,\"m\":2,\"cr\":120}] state after begin 2,120,2,load"
+  },
+  {
+   "name": "13 new save writes saveVersion:1 and round-trips",
+   "pass": true,
+   "detail": "keys saveVersion,G,up,st,ts slots 0,1"
+  },
+  {
+   "name": "14 future-version and corrupt saves are ignored safely",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "15 New Game does not touch existing saves",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "16 ?perf=1 shows overlay with required fields",
+   "pass": true,
+   "detail": "FPS 60  frame 16.7 ms | state menu  region - | enemies 0  bodies 120  scene 184 | projectiles 0/0 (pool)  fx 0/220  lights 3 pooled | gl calls 0  tris 0  geo 0  tex 0 | FLIGHT LOCK: OK  17585cfc351ff6 | save schema v1"
+  },
+  {
+   "name": "17 normal startup: no overlay, nothing created",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "20 forbidden-pattern scan",
+   "pass": true,
+   "detail": "patterns [] foreign scripts [] Math.random in flight regions false"
+  },
+  {
+   "name": "21 runtime smoke: menu -> loading -> opening -> play -> combat (headless, no GL)",
+   "pass": true,
+   "detail": "state play enemies 4 console issues []"
+  },
+  {
+   "name": "18a dead-code detector ignores comments, strings and templates (self-test)",
+   "pass": true,
+   "detail": "inert text: {\"declared\":[2],\"refs\":[]}; with a real call: {\"declared\":[2],\"refs\":[4]}"
+  },
+  {
+   "name": "18b baseline: ghost() and jump() have NO executable references; warn2() has a live call",
+   "pass": true,
+   "detail": "{\"ghost\":{\"declared\":[220],\"refs\":[]},\"jump\":{\"declared\":[221],\"refs\":[]},\"warn2\":{\"declared\":[218],\"refs\":[192]}}"
+  },
+  {
+   "name": "18c modified: ghost()/jump() removed completely; warn2() kept with its call",
+   "pass": true,
+   "detail": "{\"ghost\":{\"declared\":[],\"refs\":[]},\"jump\":{\"declared\":[],\"refs\":[]},\"warn2\":{\"declared\":[236],\"refs\":[208]}}"
+  },
+  {
+   "name": "22a build integrity: baseline matches recorded hashes; seal present",
+   "pass": true,
+   "detail": "baseline script sha256 91a0e95c969813f6…"
+  },
+  {
+   "name": "22b build integrity: HTML/CSS/DOM markup outside the script is byte-identical to baseline",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "22c build integrity: rebuilding from baseline reproduces cerebral.html (modulo seal)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "23 visual-state regression vs baseline (scene graph, materials, lights, HUD element values): menu / loading / flight / combat",
+   "pass": true,
+   "detail": "main menu, loading screen, normal flight, combat + HUD identical; HUD keys 42"
+  }
+ ]
+}
