@@ -13,7 +13,7 @@
 - **Physical Android/mobile playthrough:** NOT RUN
 - **30 FPS/performance measurement:** NOT RUN
 
-The 13 source-level checks passed against the latest code inspected during this session. They do not imply that the game has been completed in a browser. The Node test suite is now committed and set up to run in GitHub Actions on pushes and pull requests affecting the prologue branch; its CI result must be confirmed separately.
+The 13 source-level checks passed against the latest code inspected during this session. The GitHub Actions workflow also completed successfully: run 37953652022 reported 12 tests passed and 0 failed, and run 37953687803 for the subsequent documentation update completed successfully. These results do not imply that the game has been completed in a browser.
 
 ## Automated checks implemented
 
