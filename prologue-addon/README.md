@@ -1,6 +1,6 @@
 # CEREBRAL: THE LAST ASCENT — Horror Prologue Add-on
 
-This branch contains a larger first-person horror prelude that hands off to the original spacecraft campaign. Recent work adds collision-backed crew-habitat and observation-gallery wings beyond the central deck. The protected `pass-1` branch and the authoritative `cerebral.html` have not been modified.
+This branch contains a larger first-person horror prelude that hands off to the original spacecraft campaign. Recent work adds collision-backed crew-habitat and observation-gallery wings, a Unit 07 interior/hatch wake-up beat, 6.4m annex ceilings, 7.2m primary-bay/deck/hangar ceilings, and upper structural gantries. The protected `pass-1` branch and the authoritative `cerebral.html` have not been modified.
 
 ## Run
 
@@ -30,7 +30,7 @@ Five optional memory fragments add story context. Cerebral has no visible charac
 
 ## Systems in the prototype
 
-- Animated 3D title camera; extended multi-zone vessel layout with connected crew-habitat and panoramic observation-gallery wings; stacked bunks, lockers, survey consoles, tall hibernation-chamber ribs, overhead trusses, bulkhead frames, distant planet/moon, procedural panel/floor textures, a batched starfield, deterministic debris, crew traces, broken utility frames, dust and restrained steam sprites.
+- Animated 3D title camera; extended multi-zone vessel layout with connected crew-habitat and panoramic observation-gallery wings; stacked bunks, lockers, survey consoles, a first-person Unit 07 viewport and animated release hatch, 7.2m hibernation/central/hangar spaces, 6.4m annexes, tall structural ribs and ceiling gantries, bulkhead frames, distant planet/moon, procedural panel/floor textures, a batched starfield, deterministic debris, crew traces, broken utility frames, dust and restrained steam sprites.
 - Smooth first-person movement, mouse look, sprint/crouch, modest head bob/FOV response, camera-height control, player/wall/door collision, contextual line-of-sight interactions and an objective waypoint with bearing and distance.
 - Touch joystick, touch drag-look, Interact/Hide, decoy, breath control, crouch, sprint and pause controls on coarse-pointer devices.
 - Heart rate/breath/noise/neural-stability feedback, controlled breathing while hidden, a short proximity heartbeat effect, low-intensity stress blur and recoverable checkpoints.
@@ -42,7 +42,7 @@ Five optional memory fragments add story context. Cerebral has no visible charac
 
 This is still a **procedural vertical slice**, not the finished 12–18-minute jam release. Room surfaces, most props, robot models and environmental stains are primitive/generated assets. Audio is browser TTS plus synthesized ambience/tones, not recorded actors or a fully spatial/occluded sound library. Collision covers architectural walls, bulkheads, the annex windows and selected large objects, not every small piece of dressing. Robot navigation is a small waypoint graph and can still make imperfect search decisions. The duration has not yet been measured from a real playthrough.
 
-The inline module passed a JavaScript syntax-compilation check and its referenced DOM IDs resolve statically. **Browser runtime, quest completion, collision edge cases, touchscreen use, speech synthesis, iframe handoff, mobile/Safari behavior and performance still require hands-on testing.** Do not treat a static parse as a game-play test.
+The inline module passed a JavaScript syntax-compilation check; all 39 statically referenced DOM IDs resolve, and the HTML contains no duplicate ID values. **Browser runtime, quest completion, collision edge cases, touchscreen use, speech synthesis, iframe handoff, mobile/Safari behavior and performance still require hands-on testing.** Do not treat a static parse as a game-play test.
 
 ## Protected source boundary
 
