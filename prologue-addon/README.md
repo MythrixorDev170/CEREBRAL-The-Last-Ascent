@@ -16,7 +16,7 @@ Run through a **same-origin static server** for the campaign handoff. After the 
 
 ## Implemented route
 
-1. Tap Begin Recovery. Unit 07 remains inside the pod until the player explicitly presses **WAKE / RELEASE** on mobile or presses **E** on desktop; the hatch then opens and the route begins.
+1. Tap Begin Recovery. Interact with the hibernation release console using **E** on desktop or the mobile wake button. Enter the four-digit magnetic-lock code using the keyboard or on-screen keypad. Use **READ DAMAGED WALL CHART** to inspect the departure-year clue (**2187**). The hatch opens only after a correct code.
 2. Use the neural stabilizer and recover the medical access chip.
 3. Enter the central space deck and move through the ship's opened bulkheads.
 4. Restore the grid by activating **three separate power nodes** in Maintenance and Research. The loud grid restore can attract a nearby security robot.
@@ -40,7 +40,7 @@ Five optional memory fragments add story context. Cerebral has no visible charac
 
 ## Accessibility and automated checks
 
-The intro screen and pause menu now expose **ACCESSIBILITY & AUDIO** settings: reduced jumpscare effects, dialogue captions, Cerebral voice synthesis, Audio Comfort and master volume. Settings are saved locally in the current browser. Reduced-scare mode softens low-frequency startle tones, decreases broken-robot twitch intensity and suppresses the helper's red flash. Audio Comfort reduces the overall synthesized mix; it is not a studio dynamic-range compressor.
+The intro screen and pause menu now expose **ACCESSIBILITY & AUDIO** settings: reduced jumpscare effects, dialogue captions, Cerebral voice synthesis, Audio Comfort and master volume. The pod wake sequence now includes the design report's 2187 departure-year magnetic lock, supporting both keyboard and touch keypad input. Settings are saved locally in the current browser. Reduced-scare mode softens low-frequency startle tones, decreases broken-robot twitch intensity and suppresses the helper's red flash. Audio Comfort reduces the overall synthesized mix; it is not a studio dynamic-range compressor.
 
 Run the static smoke suite from the repository root with Node.js 22 or later:
 
