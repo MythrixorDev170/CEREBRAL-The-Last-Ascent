@@ -45,12 +45,12 @@ test('all required accessibility and audio controls are present', () => {
 });
 
 test('reduced-scare mode is connected to startle feedback', () => {
-  assert.ok(js.includes('const reduced=!!gameSettings.reducedScares'), 'The scare helper must read reduced-scare setting');
+  assert.ok(!js.includes('function scare()'), 'Unreachable generic scare helper should not remain in the code');
   assert.ok(js.includes('function scareTone('), 'Scare-only attenuation helper must exist');
   assert.ok(js.includes('const scaled=gameSettings.reducedScares?gain*.48:gain'), 'Reduced mode must soften tagged scare sounds');
   assert.ok(js.includes("scareTone(42,.45,'sawtooth',.075,wrecks[0].position)"), 'Authored scare cue must use the setting without affecting ordinary footsteps');
   assert.ok(js.includes('gameSettings.reducedScares?.45:1'), 'Wreck twitch motion should be reduced');
-  assert.ok(js.includes("if(!reduced){$('damage').style.opacity=.45"), 'Reduced mode should avoid the scare flash');
+  assert.ok(js.includes("$('damage').style.opacity=gameSettings.reducedScares?.25:.72"), 'Reduced mode should soften the recovery flash');
 });
 
 test('mobile renderer pixel-ratio cap is consistent at startup and resize', () => {
