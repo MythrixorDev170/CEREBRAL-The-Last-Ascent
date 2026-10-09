@@ -9,7 +9,7 @@
 
 The latest prototype already has a more developed route than the uploaded report's five-quest outline: it contains nine objective stages, a three-node facility power gate, a three-step Research containment sequence, memory fragments, hiding/decoys, robot search behavior, and a hangar/cockpit handoff. The report and code are therefore **not yet content-equivalent**. This pass preserved the prototype's current progression instead of replacing it with a second incompatible quest system.
 
-This pass adds player-comfort options and reproducible smoke tests. Source-level checks passed in the working session, but that is not a substitute for playing through the complete game in a browser or on a phone.
+This pass adds the design report's 2187 hibernation magnetic-lock puzzle, player-comfort options, and reproducible smoke tests. Source-level checks passed in the working session, but that is not a substitute for playing through the complete game in a browser or on a phone.
 
 ## Findings by priority
 
@@ -20,7 +20,7 @@ This pass adds player-comfort options and reproducible smoke tests. Source-level
 | P1 | Target playtime has not been measured. | The report targets roughly 18–20 minutes. The README describes a procedural vertical slice and explicitly says a full-route duration has not been measured. | **Open — timed playtest required.** |
 | P1 | Audio is procedural/browser-generated, not the final sound package. | The prototype synthesizes tones and ambience through Web Audio and uses browser speech synthesis for Cerebral. It does not yet provide recorded actor dialogue and a full licensed industrial-horror library. | **Open — production audio pass.** |
 | P1 | Enemy navigation is a lightweight waypoint graph, not a full navigation system. | Current README documents authored waypoint navigation and imperfect search decisions. Some collision coverage is architectural walls and selected large props rather than all dressing. | **Open — test patrol routes and corners.** |
-| P1 | The generic scare helper appears to be uncalled. | Source inspection found the helper definition, while intended scares are driven by the authored wreck, blackout, communications, and robot-trigger blocks. An unused helper can mislead future tuning. | **Open — remove it or deliberately wire it to one authored event after playtesting.** |
+| P1 | An unused generic scare helper was present in an earlier iteration. | The generic helper and its unused timer state have now been removed; scare feedback is handled by the authored wreck, blackout, communications, robot-trigger, and recovery paths. | **Fixed in prototype branch; verify timing in browser.** |
 | P1 | The report's specified jumpscares are only partially represented. | Existing code has one-shot wreck-motion cues, a blackout/observation cue, a communications cue, and a robot investigation trigger. It does not yet guarantee the exact corridor-door slam, vent drone, and hangar lunge scenes in the report. | **Open — stage and test only after route validation.** |
 | P2 | The prototype remains a large single HTML/module file with stacked CSS overrides. | Fast to prototype, but it makes features harder to isolate and regressions harder to localize. | **Deferred — refactor after the jam route is stable.** |
 | P2 | Real performance and memory behavior are unmeasured. | The mobile pixel-ratio cap is now consistent at 1.0 during startup and resize, and touch devices disable real-time shadow maps; neither guarantees 30 FPS on every phone. | **Open — profile representative devices.** |
@@ -29,23 +29,25 @@ This pass adds player-comfort options and reproducible smoke tests. Source-level
 ## Changes made in this pass
 
 1. Added an Accessibility & Audio panel reachable from both the intro screen and pause menu.
-2. Added a persisted Reduce jumpscare effects option. It reduces low-frequency startle tones and wreck twitch intensity, and removes the helper's red screen flash in reduced mode.
+2. Added a persisted Reduce jumpscare effects option. It softens authored scare tones and wreck twitch intensity, and reduces the recovery flash in reduced mode without changing ordinary footstep volume.
 3. Added configurable dialogue captions, Cerebral speech synthesis, Audio Comfort, and a 0–100 master volume.
 4. Wrapped local-storage reads/writes and optional Web Audio use in guards so settings do not crash when those browser APIs are unavailable.
 5. Added dialog focus handoff and focus return.
 6. Standardized the mobile renderer pixel-ratio cap at 1.0 for initial setup and resize.
-7. Added a Node.js smoke-test suite and a GitHub Actions workflow on the prototype branch.
+7. Added the 2187 four-digit hibernation lock with a readable wall-chart clue, keyboard/touch keypad input, clear/enter controls, invalid-code feedback, and restart-safe state.
+8. Added a Node.js smoke-test suite and a GitHub Actions workflow on the prototype branch.
 
 ## Verification performed in this session
 
 **Source consistency checks: 14/14 passed.** The checks used the latest branch source and a JavaScript parser in this tool session. They covered inline-module syntax, test-file syntax, all $('id') references having a matching unique DOM ID, the nine-stage objective array, mobile pixel ratio, accessibility controls, scare-only audio attenuation, the three-node power gate, authored scare flags, touch wake/visibility safety, original-campaign handoff, and collision/robot/door/waypoint function presence.
 
-The repository Node test file contains 12 reproducible tests. The latest run, [GitHub Actions 37953936894](https://github.com/MythrixorDev170/CEREBRAL-The-Last-Ascent/actions/runs/37953936894), completed successfully with 12 passed and 0 failed. An intermediate run failed because a test still expected the earlier broad low-frequency attenuation behavior; the source was refined so normal footsteps remain unaffected, the test was updated to target scare-only audio, and the subsequent run passed. No live browser or physical-phone session was run in this pass.
+The repository Node test file contains 13 reproducible tests. The latest run against the hibernation-lock implementation, [GitHub Actions 37954489695](https://github.com/MythrixorDev170/CEREBRAL-The-Last-Ascent/actions/runs/37954489695), completed successfully with 13 passed and 0 failed. Earlier iterations exposed a stale assertion about audio attenuation; this was corrected by scoping reduced-scare attenuation to authored scare cues so ordinary footsteps remain unaffected. No live browser or physical-phone session was run in this pass.
 
 ## Recommended remediation order
 
 ### P0 — Before calling the prologue complete
 - Run node --test prologue-addon/tests/prologue-smoke.test.mjs and confirm the GitHub Actions run succeeds.
+- Verify the 2187 pod lock: correct code releases the pod; incorrect codes do not advance the quest; the clue is reachable on desktop/mobile; restart resets the puzzle.
 - Play from a fresh launch to the final handoff on desktop Chrome.
 - Repeat on a representative Android phone, including wake, look-drag, joystick isolation, held inputs, focus loss, pause/resume, and reload.
 - Validate every mandatory item, gate, checkpoint, failed puzzle retry, and robot pursuit from start to finish.
