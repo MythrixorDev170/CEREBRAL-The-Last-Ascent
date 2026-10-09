@@ -38,9 +38,9 @@ This pass adds player-comfort options and reproducible smoke tests. Source-level
 
 ## Verification performed in this session
 
-**Source consistency checks: 13/13 passed.** The checks used the latest branch source and a JavaScript parser in this tool session. They covered inline-module syntax, test-file syntax, all $('id') references having a matching unique DOM ID, the nine-stage objective array, mobile pixel ratio, accessibility controls, reduced-scare wiring, the three-node power gate, authored scare flags, touch wake/visibility safety, original-campaign handoff, and collision/robot/door/waypoint function presence.
+**Source consistency checks: 14/14 passed.** The checks used the latest branch source and a JavaScript parser in this tool session. They covered inline-module syntax, test-file syntax, all $('id') references having a matching unique DOM ID, the nine-stage objective array, mobile pixel ratio, accessibility controls, scare-only audio attenuation, the three-node power gate, authored scare flags, touch wake/visibility safety, original-campaign handoff, and collision/robot/door/waypoint function presence.
 
-The repository Node test file contains 12 reproducible tests. GitHub Actions run 37953652022 succeeded with 12 passed and 0 failed, and the subsequent run for the documentation update (37953687803) also completed successfully. No live browser or physical-phone session was run in this pass.
+The repository Node test file contains 12 reproducible tests. The latest run, [GitHub Actions 37953936894](https://github.com/MythrixorDev170/CEREBRAL-The-Last-Ascent/actions/runs/37953936894), completed successfully with 12 passed and 0 failed. An intermediate run failed because a test still expected the earlier broad low-frequency attenuation behavior; the source was refined so normal footsteps remain unaffected, the test was updated to target scare-only audio, and the subsequent run passed. No live browser or physical-phone session was run in this pass.
 
 ## Recommended remediation order
 
