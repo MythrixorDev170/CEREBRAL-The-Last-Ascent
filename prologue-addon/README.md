@@ -2,6 +2,12 @@
 
 This branch contains a larger first-person horror prelude that hands off to the original spacecraft campaign. Recent work adds collision-backed crew-habitat and observation-gallery wings, a Unit 07 interior/hatch wake-up beat, 6.4m annex ceilings, 7.2m primary-bay/deck/hangar ceilings, and upper structural gantries. The protected `pass-1` branch and the authoritative `cerebral.html` have not been modified.
 
+## Design and QA documents
+
+- [Prologue Game Design Document](PROLOGUE_GAME_DESIGN_DOCUMENT.md) — narrative, scene-by-scene route, dialogue, quest rewards, puzzle clues/solutions, horror events, sound, controls, accessibility, scope boundaries and acceptance criteria.
+- [Prologue Code & Pass-Test Report](PROLOGUE_PASS_TEST_REPORT.md) — automated checks and known testing limits.
+- [Prologue Error Analysis](PROLOGUE_ERROR_ANALYSIS.md) — implementation gaps, risk priorities and remediation.
+
 ## Run
 
 From the repository root:
