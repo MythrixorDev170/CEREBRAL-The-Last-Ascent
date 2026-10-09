@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 
 const htmlPath = fileURLToPath(new URL('../cerebral-prologue.html', import.meta.url));
 const html = readFileSync(htmlPath, 'utf8');
-const moduleMatch = html.match(/<script type="module">([\\s\\S]*?)<\\/script>/);
-assert.ok(moduleMatch, 'The playable prototype must have one embedded JavaScript module.');
+const moduleMatch = html.match(/<script type="module">([\s\S]*?)<\/script>/);
+assert.ok(moduleMatch, 'The playable prototype must have an embedded JavaScript module.');
 const js = moduleMatch[1];
 
 test('embedded JavaScript module passes Node syntax validation', () => {
@@ -25,8 +25,8 @@ test('embedded JavaScript module passes Node syntax validation', () => {
 });
 
 test('all statically referenced UI element IDs exist exactly once', () => {
-  const declared = [...html.matchAll(/\\bid=["']([^"']+)["']/g)].map(m => m[1]);
-  const refs = [...js.matchAll(/\\$\\(['"]([^'"]+)['"]\\)/g)].map(m => m[1]);
+  const declared = [...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m => m[1]);
+  const refs = [...js.matchAll(/\$\(['"]([^'"]+)['"]\)/g)].map(m => m[1]);
   const counts = new Map();
   for (const id of declared) counts.set(id, (counts.get(id) || 0) + 1);
   const missing = [...new Set(refs.filter(id => !counts.has(id)))];
@@ -39,9 +39,8 @@ test('all required accessibility and audio controls are present', () => {
   for (const id of ['settingsPanel', 'settingReducedScares', 'settingSubtitles', 'settingVoice', 'settingComfort', 'settingVolume', 'settingDone', 'openSettingsIntro', 'openSettingsPause']) {
     assert.ok(html.includes('id="' + id + '"'), 'Expected settings element ' + id);
   }
-  assert.ok(js.includes('localStorage.setItem(\'cerebralPrologueSettings\''), 'Settings should persist locally');
-  assert.ok(js.includes('subtitlesEnabled?1:0') === false, 'Avoid a brittle dependency on a specific caption implementation');
-  assert.ok(js.includes("style.opacity=subtitlesEnabled?1:0"), 'Captions must honor the subtitle setting');
+  assert.ok(js.includes("localStorage.setItem('cerebralPrologueSettings'"), 'Settings should persist locally');
+  assert.ok(js.includes('style.opacity=subtitlesEnabled?1:0'), 'Captions must honor the subtitle setting');
   assert.ok(js.includes('voiceEnabled=gameSettings.voice!==false'), 'Voice playback must honor the saved preference');
 });
 
@@ -58,9 +57,9 @@ test('mobile renderer pixel-ratio cap is consistent at startup and resize', () =
 });
 
 test('nine quest stages and progression cap are internally represented', () => {
-  const match = js.match(/const objectives=\\[([\\s\\S]*?)\\];/);
+  const match = js.match(/const objectives=\[([\s\S]*?)\];/);
   assert.ok(match, 'Quest objectives array not found');
-  const stageCount = [...match[1].matchAll(/\\['[^']+','[^']+'\\]/g)].length;
+  const stageCount = [...match[1].matchAll(/\['[^']+','[^']+'\]/g)].length;
   assert.equal(stageCount, 9, 'Expected the current nine-stage prologue route');
   assert.ok(js.includes('Math.min(n,8)'), 'Quest index must stay within the objective array');
 });
@@ -90,10 +89,10 @@ test('touch controls keep movement, look, wake, and pause separately addressable
 test('the prologue hands off to the original campaign rather than replacing it', () => {
   assert.ok(html.includes('id="mainGameFrame"'), 'Original campaign iframe should remain available');
   assert.ok(js.includes('../cerebral.html'), 'Handoff should target the authoritative campaign entry');
-  assert.ok(html.includes('CEREBRAL is only a voice') || html.includes('Cerebral is only a voice'), 'Story framing should keep Cerebral disembodied');
+  assert.ok(html.includes('Cerebral is only a voice') || html.includes('CEREBRAL is only a voice'), 'Story framing should keep Cerebral disembodied');
 });
 
-test('mobile and desktop collision/AI systems are still represented', () => {
+test('collision, robot search, doors, and waypoint systems remain present', () => {
   for (const token of ['function collidesAt(', 'function updateBots(', 'lastKnown', 'function updateDoors(', 'function updateWaypoint(']) {
     assert.ok(js.includes(token), 'Missing gameplay safety system: ' + token);
   }
