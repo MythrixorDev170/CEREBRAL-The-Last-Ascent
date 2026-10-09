@@ -1,39 +1,49 @@
-# CEREBRAL: THE LAST ASCENT — First-Person Horror Prologue Add-on
+# CEREBRAL: THE LAST ASCENT — Horror Prologue Add-on
 
-## What this is
-A standalone, single-file Three.js playable prototype intended as a concrete starting point for Claude to improve and integrate. It is **not** the production game's merged build and does not modify the existing `cerebral.html` or any protected game systems.
+This branch contains an expanded first-person prologue prototype that hands off to the existing spacecraft campaign. It remains isolated from the protected game source.
 
-## Play
-Open `cerebral-prologue.html` in a browser with internet access. It imports Three.js from jsDelivr. If your browser blocks ES modules on `file://`, serve this folder with a local static server (for example, `python -m http.server 8000`) and open `http://localhost:8000/prologue-addon/cerebral-prologue.html`.
+## Run it locally
 
-Controls: WASD move, mouse look, E interact/hide/leave hiding, Shift sprint, Ctrl crouch, Q control breathing while hidden, Esc pause/release mouse. Click Resume to reacquire the mouse.
+From the repository root, start a static server:
 
-## Prototype currently contains
-- First-person mouse-look movement, sprint/crouch, pause/restart, HUD/objective updates.
-- A connected, authored station layout with Medical Bay, Central Space Deck and planet view, Maintenance, Research, Security, Communications and Hangar.
-- Modular industrial room geometry, medical pods, benches, consoles, crates, pipework, windows, warning accents, broken/sparking panel, starfield and planet.
-- Recoverable stabilizer, access chip, power relay, research archive, security override, crew recording, hangar release and cockpit interactions.
-- Heart-rate, breathing-control, noise and neural-stability feedback.
-- Two procedural facility robots with basic patrol/investigate/pursuit/search behavior; proximity threat and one authored scare beat.
-- Cerebral objective reactions, scientist recording, generated ambience/tones, hangar/cockpit launch ending.
-- Responsive UI and capped renderer pixel ratio.
+```bash
+python -m http.server 8000
+```
 
-## Important prototype limits — Claude must address before claiming production-ready
-This is a playable greybox/vertical-slice foundation, not the final 12–18-minute jam-ready experience. Geometry is procedural, art/audio are placeholders, the stealth simulation is intentionally simple, and full physical collision/navigation, polished room connections, enemy animation, proper objective gating, accessibility settings, real recorded voice assets, browser/device testing and performance soak still need implementation and verification. The ending contains an explicit integration handoff rather than actually loading the current game's first state. Do not describe it as merged or fully tested.
+Open `http://localhost:8000/prologue-addon/cerebral-prologue.html`. The page imports Three.js from jsDelivr, so an internet connection is required.
 
-## Claude's task: improve this implementation, do not remake it
-Read this file first, then the current authoritative CEREBRAL source/build and Pass 8–12 reports. Work from this prototype as the starting point. Preserve its useful scene structure and interactions, then integrate the prologue as an isolated opening module into the **actual current game**. Do not replace the whole game with this prototype.
+**Use a same-origin static server for the launch handoff.** At the end of the prologue, the page loads the repository's existing `../cerebral.html` into a full-screen frame. If no campaign save exists, it selects New Game and begins the original game's first mission. If saves exist, it leaves the original campaign menu open so the player can choose Continue, Load, or New Game without silently overwriting a save.
 
-Non-negotiable preservation: keep the existing player ship and all current ship geometry/materials, flight physics and flight-lock protected regions/hash, TUNE, PAL, spacecraft controls, damage, weapons, targeting, hitboxes/collision, Pass 8 adaptation/comms, Pass 9–11 world/visual/hangar systems, Pass 12 horror director/audio architecture, existing mission progression, and save schema unchanged except for the smallest isolated prologue-completion flag if truly required. Do not rebalance spacecraft combat or change existing enemy stats.
+## Prologue flow now in code
 
-Priority order:
-1. Make the first-person prologue truly playable end-to-end: reliable collision and traversable doorways; clear navigation; no softlocks; robust objective gating; interact ray/line-of-sight; checkpoint/recovery; real robot search logic based on vision, sound, light and last-known location; hiding spaces with fair detection; controlled-breath timing that affects audible detection; predictable authored scare budget; no random unfair deaths.
-2. Upgrade environment quality with detailed, consistent material variation, readable silhouettes, motivated lighting, restrained volumetric-looking steam/dust, authored sparks, decals, props and strong spatial composition. Avoid excessive fog, constant flicker and indiscriminate darkness. Keep it performant.
-3. Make audio cues directional and distinct; reuse the existing audio architecture and Pass 12 director. Add recorded voice assets only when available; gracefully handle missing assets.
-4. Build a rewarding 12–18-minute route: wake/recover, explore, investigate, first hunt, breathing hide, research revelation, second coordinated hunt, hangar escape, launch. Optional data/recordings should reveal story or grant useful prologue intel, not grind.
-5. Replace the placeholder ending with a deterministic handoff into the **exact current game's first-area/start state**. Use the existing ship, existing world and existing game state; do not create a second ship or duplicate campaign. If exact handoff cannot be proven, stop and report the precise missing integration point rather than guessing.
-6. Test desktop Chromium, a narrow/mobile-emulated viewport, keyboard/mouse and available touch fallback; run existing Pass 1–12 regression suites and flight-lock checks. Report exact pass/fail counts and any untested physical-device/browser limitations. Never claim tests were run if they were not.
+1. Wake and manually release Hibernation Unit 07 in a larger, high-ceiling hibernation chamber.
+2. Recover the neural stabilizer and medical access chip.
+3. Enter the central deck and explore the connected vessel wings.
+4. Restore facility power by routing **three separate nodes** across Maintenance and Research.
+5. Recover the research archive, then the crew recording in Communications.
+6. Reach Security, override the hangar lockdown, release the ship and enter the cockpit.
+7. Watch the short in-engine launch transition, then continue into the existing CEREBRAL campaign.
 
-Design direction: original industrial sci-fi psychological survival horror, taking only high-level lessons from excellent horror games (tension, sensory AI, environmental storytelling, systemic risk/reward, coordinated searches). Do not copy their characters, level layouts, audio, dialogue or distinctive mechanics. Cerebral is a planet-scale AI/network, not a humanoid monster. It reacts selectively to objective milestones with a calm-to-manipulative-to-threatening arc (examples: “You're awake.”, “Nice try.”, “You unlocked it.”, “Hide.”). Avoid constant chatter and repetitive jumpscares.
+Three optional memory fragments provide extra story context without blocking the main route. Cerebral remains a voice/caption only; this build contains no visible Cerebral character, model, or face.
 
-Finish with the actual updated game build plus a concise change report, test evidence, known limits, and a rollback-safe diff. Keep the implementation focused; no unrelated features or new pass framework.
+## Current systems
+
+- Enlarged room proportions, tall chamber ribs and trusses, deterministic stars/debris placement, procedural panel/floor textures, hangar cradle dressing, wrecked utility robots and environmental clues.
+- Keyboard/mouse first-person movement with acceleration/deceleration, sprint and crouch; touch joystick, drag-look, interact, decoy, breath, crouch and sprint controls on coarse-pointer devices.
+- Structural room/corridor/door collision, door collision while shut, interaction line-of-sight checks, milestone checkpoints and local recovery after a capture.
+- Robot vision-cone checks, structural occlusion, shorter detection range while crouched, sound investigation, last-known-position search, pursuit and fair hidden-state loss. The robots are still a lightweight prototype AI, not a full navigation-mesh implementation.
+- Heart-rate, breathing, noise and neural-stability HUD; controlled breathing while hidden; thrown metal decoys and loud power routing to draw a search toward the last sound location.
+- Authored one-shot central-deck and Communications cues. Random scare rolls have been removed; remaining procedural geometry placement is deterministic.
+- Three relay interactions, security/recording gating, optional memory pickups and a ship-launch handoff into the actual campaign HTML.
+
+## Important limits
+
+This is still a procedural vertical-slice implementation, not the finished 12–18-minute jam release. Models, surfaces, decals and audio are mostly generated placeholders; the current audio is synthesized tones/ambience rather than recorded, spatially occluded voice and sound assets. Collision covers structural geometry and selected large props rather than every small prop. Robot navigation is deliberately simple, and the full run time, difficulty curve and route have not been measured in a browser playthrough.
+
+The prototype's JavaScript module body passes a syntax compilation check and its static DOM references resolve, but browser runtime, the full end-to-end quest, iframe handoff, mobile touch behavior, real-device performance and audio still need hands-on testing. Do not call the prototype fully tested until those checks have actually been run.
+
+## Protected source boundary
+
+`cerebral.html` is intentionally unchanged on this branch and has the same blob SHA as `pass-1`. The prologue's launch handoff opens that original file rather than duplicating or rewriting its ship, flight physics, save schema, HUD, targeting, weapons or campaign state.
+
+Claude's integration task is to continue from this implementation—not to recreate it from scratch—then test the full prologue and existing regression suites before merging any isolated prelude hook. Do not change the protected `pass-1` branch.
