@@ -122,7 +122,18 @@ const navPoints={medical:new THREE.Vector3(0,0,0),deck:new THREE.Vector3(0,0,-20
 const navLinks={medical:['deck'],deck:['medical','maintenance','research','south'],maintenance:['deck','communications'],research:['deck','security'],communications:['maintenance','commsExit'],security:['research','securityExit'],commsExit:['communications','south'],securityExit:['security','south'],south:['deck','commsExit','securityExit','hangar'],hangar:['south']};
 function navZone(p){if(p.z>-8)return'medical';if(p.z<-54)return'hangar';if(p.z<-51&&p.x<-8)return'commsExit';if(p.z<-51&&p.x>8)return'securityExit';if(p.z>-38&&p.z<-22&&p.x<-8)return'maintenance';if(p.z>-38&&p.z<-22&&p.x>8)return'research';if(p.z<-38&&p.z>-51&&p.x<-8)return'communications';if(p.z<-38&&p.z>-51&&p.x>8)return'security';if(p.z>-34)return'deck';return'south'}
 function navRoute(from,to){if(from===to)return[from];const queue=[[from]],seen=new Set([from]);while(queue.length){const path=queue.shift(),last=path[path.length-1];if(last===to)return path;for(const next of (navLinks[last]||[])){if(!seen.has(next)){seen.add(next);queue.push([...path,next])}}}return[from,to]}
-function robotMoveTarget(bot,target){const from=navZone(bot.position),to=navZone(target);if(from===to)return target.clone();const path=navRoute(from,to);return navPoints[path[1]]?navPoints[path[1]].clone():target.clone()}
+const navPortals={
+'medical>deck':new THREE.Vector3(0,0,-8.5),'deck>medical':new THREE.Vector3(0,0,-7.5),
+'deck>maintenance':new THREE.Vector3(-8.5,0,-29),'maintenance>deck':new THREE.Vector3(-7.5,0,-29),
+'deck>research':new THREE.Vector3(8.5,0,-29),'research>deck':new THREE.Vector3(7.5,0,-29),
+'maintenance>communications':new THREE.Vector3(-14,0,-38.5),'communications>maintenance':new THREE.Vector3(-14,0,-37.5),
+'research>security':new THREE.Vector3(15,0,-38.5),'security>research':new THREE.Vector3(15,0,-37.5),
+'communications>commsExit':new THREE.Vector3(-14,0,-51.5),'commsExit>communications':new THREE.Vector3(-14,0,-50.5),
+'security>securityExit':new THREE.Vector3(15,0,-51.5),'securityExit>security':new THREE.Vector3(15,0,-50.5),
+'commsExit>south':new THREE.Vector3(-7.5,0,-52),'south>commsExit':new THREE.Vector3(-8.5,0,-52),
+'securityExit>south':new THREE.Vector3(7.5,0,-52),'south>securityExit':new THREE.Vector3(8.5,0,-52),
+'south>hangar':new THREE.Vector3(0,0,-54.5),'hangar>south':new THREE.Vector3(0,0,-53.5)};
+function robotMoveTarget(bot,target){const from=navZone(bot.position),to=navZone(target);if(from===to)return target.clone();const path=navRoute(from,to),edge=path[0]+'>'+path[1];return navPortals[edge]?navPortals[edge].clone():(navPoints[path[1]]?navPoints[path[1]].clone():target.clone())}
 const interactables=[];function item(name,x,y,z,action,desc,range=2.2){const o=box(world,x,y,z,.7,.7,.5,mats.screen,{shadow:false});o.userData={name,action,desc,range};interactables.push(o);label(name,x-1,y+1,z,'#b9f6ff');return o}
 const podRelease=item('HIBERNATION RELEASE',0,1.15,4.1,'wake','Release the manual lock on Hibernation Unit 07.');
 podRelease.scale.set(1.15,1.2,1);
