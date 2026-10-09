@@ -40,7 +40,7 @@ This pass adds player-comfort options and reproducible smoke tests. Source-level
 
 **Source consistency checks: 13/13 passed.** The checks used the latest branch source and a JavaScript parser in this tool session. They covered inline-module syntax, test-file syntax, all $('id') references having a matching unique DOM ID, the nine-stage objective array, mobile pixel ratio, accessibility controls, reduced-scare wiring, the three-node power gate, authored scare flags, touch wake/visibility safety, original-campaign handoff, and collision/robot/door/waypoint function presence.
 
-The repository Node test file contains 12 reproducible tests. A source-level check is not a completed run of node --test, and the GitHub Actions result must be checked before describing those tests as CI-passed. No live browser or physical-phone session was run in this pass.
+The repository Node test file contains 12 reproducible tests. GitHub Actions run 37953652022 succeeded with 12 passed and 0 failed, and the subsequent run for the documentation update (37953687803) also completed successfully. No live browser or physical-phone session was run in this pass.
 
 ## Recommended remediation order
 
