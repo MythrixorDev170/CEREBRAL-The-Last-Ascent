@@ -7,13 +7,13 @@
 ## Result summary
 
 - **Source-level checks performed in this session:** **14/14 PASS**
-- **Reproducible Node tests added to the repo:** 12
+- **Reproducible Node tests added to the repo:** 13
 - **GitHub Actions workflow:** added at .github/workflows/prologue-smoke.yml
 - **Live browser playthrough:** NOT RUN
 - **Physical Android/mobile playthrough:** NOT RUN
 - **30 FPS/performance measurement:** NOT RUN
 
-The 14 source-level checks passed against the latest code inspected during this session. The latest GitHub Actions run, [37953936894](https://github.com/MythrixorDev170/CEREBRAL-The-Last-Ascent/actions/runs/37953936894), reports 12 tests passed and 0 failed. One intermediate run failed due to a stale expectation about audio attenuation; this was corrected by scoping reduced-scare attenuation to authored scare cues and updating the test. These results do not imply that the game has been completed in a browser.
+The 14 source-level checks passed against the latest code inspected during this session. The latest GitHub Actions run for the 2187 magnetic-lock implementation, [37954489695](https://github.com/MythrixorDev170/CEREBRAL-The-Last-Ascent/actions/runs/37954489695), reports 13 tests passed and 0 failed. An earlier stale assertion about broad audio attenuation was corrected so normal footsteps remain unchanged and only authored scare cues are softened. These results do not imply that the game has been completed in a browser.
 
 ## Automated checks implemented
 
@@ -31,6 +31,7 @@ The test file is prologue-addon/tests/prologue-smoke.test.mjs. It uses only Node
 10. The original campaign iframe handoff remains connected.
 11. Collision, robot-search, door, and waypoint logic remain represented.
 12. Local storage and Web Audio setting application have guarded fallbacks.
+13. The hibernation wake interaction is gated by the 2187 magnetic lock, with a readable departure-year clue and keyboard/touch keypad controls.
 
 ## How to run
 
@@ -42,7 +43,8 @@ The GitHub Actions workflow runs the same command for changes on prologue-addon-
 
 ## Manual acceptance still required
 
-- [ ] Fresh start → wake interaction → final launch, with no softlock.
+- [ ] Fresh start → enter the 2187 departure-year code → wake interaction → final launch, with no softlock.
+- [ ] Incorrect pod codes show feedback and do not bypass the lock; restart clears the attempt state.
 - [ ] Desktop mouse-look/pointer-lock and keyboard controls.
 - [ ] Mobile wake, left joystick movement, separate right-side camera drag, and all touch buttons.
 - [ ] Stamina sprint/recovery and held-input release after focus loss.
