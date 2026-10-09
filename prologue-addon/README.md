@@ -38,6 +38,18 @@ Five optional memory fragments add story context. Cerebral has no visible charac
 - Thrown metal decoys, a mandatory three-step lab terminal puzzle, room-specific footstep tones, panned/occluded synthetic threat tones, emergency red strobes, grid-linked fading room lights and scripted one-shot environmental cues.
 - Automatic launch handoff to the original game HTML. No flight mechanics, weapons, targeting, HUD, mission logic or save format have been copied or modified in this prelude.
 
+## Accessibility and automated checks
+
+The intro screen and pause menu now expose **ACCESSIBILITY & AUDIO** settings: reduced jumpscare effects, dialogue captions, Cerebral voice synthesis, Audio Comfort and master volume. Settings are saved locally in the current browser. Reduced-scare mode softens low-frequency startle tones, decreases broken-robot twitch intensity and suppresses the helper's red flash. Audio Comfort reduces the overall synthesized mix; it is not a studio dynamic-range compressor.
+
+Run the static smoke suite from the repository root with Node.js 22 or later:
+
+```bash
+node --test prologue-addon/tests/prologue-smoke.test.mjs
+```
+
+GitHub Actions runs the same test file for changes on `prologue-addon-prototype`. These tests validate source structure, DOM references, objective and gate invariants, settings wiring, and key gameplay-system presence. They do **not** replace a full browser walkthrough or a physical-device test. See `PROLOGUE_PASS_TEST_REPORT.md` for the checklist and `PROLOGUE_ERROR_ANALYSIS.md` for known gaps.
+
 ## Known limits
 
 This is still a **procedural vertical slice**, not the finished 12–18-minute jam release. Room surfaces, most props, robot models and environmental stains are primitive/generated assets. Audio is browser TTS plus synthesized ambience/tones, not recorded actors or a fully spatial/occluded sound library. Collision covers architectural walls, bulkheads, the annex windows and selected large objects, not every small piece of dressing. Robot navigation is a small waypoint graph and can still make imperfect search decisions. The duration has not yet been measured from a real playthrough.
