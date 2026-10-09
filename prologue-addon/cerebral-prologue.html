@@ -232,7 +232,7 @@ const to=p.clone().sub(b.position).normalize();
 const crouched=keys.ControlLeft||keys.ControlRight,sprinting=(keys.ShiftLeft||keys.ShiftRight)&&Math.hypot(vel.x,vel.z)>1;
 const inDark=(p.z<-8&&!power)||(p.z<-35&&p.z>-52&&!recording);
 const playerFwd=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));const beamToBot=b.position.clone().sub(p);beamToBot.y=0;const beamExposure=flashlightOn&&!hidden&&d<17&&beamToBot.lengthSq()>0&&playerFwd.dot(beamToBot.normalize())>.62;
-const sightRange=(crouched?6.5:10)*(inDark?.64:1)*(sprinting?1.12:1)*(beamExposure?1.36:1);
+const sightRange=(crouched?6.5:10)*(inDark&&!beamExposure?.64:1)*(sprinting?1.12:1)*(beamExposure?1.36:1);
 let sees=!hidden&&d<sightRange&&dir.dot(to)>(crouched?.62:.48)&&Math.abs(p.y-1.5)<3;
 if(sees){ray.set(b.position.clone().add(new THREE.Vector3(0,1.9,0)),to);ray.far=Math.max(.1,d-.65);if(ray.intersectObjects(solidBoxes.map(s=>s.mesh),false).length)sees=false}
 if(sees){u.alert+=dt*1.15;const wasPursuing=u.state==='pursuit';u.state=u.alert>2.2?'pursuit':'investigate';u.target=p.clone();u.lastKnown.copy(p);u.search=0;if(u.state==='pursuit'&&!wasPursuing){spatialToneAt(155,.22,'sawtooth',.042,b.position);const partner=bots[(i+1)%bots.length];if(partner&&partner!==b&&partner.userData.state!=='pursuit'){partner.userData.state='investigate';partner.userData.target.set(p.x+(i===0?4:-4),0,p.z+3);partner.userData.lastKnown.copy(partner.userData.target);partner.userData.alert=Math.max(partner.userData.alert,.9);spatialToneAt(95,.28,'triangle',.025,partner.position)}}}
