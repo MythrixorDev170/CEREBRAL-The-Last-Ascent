@@ -1,0 +1,31 @@
+name: Prologue smoke tests
+
+on:
+  push:
+    branches:
+      - prologue-addon-prototype
+    paths:
+      - 'prologue-addon/**'
+      - '.github/workflows/prologue-smoke.yml'
+  pull_request:
+    branches:
+      - prologue-addon-prototype
+    paths:
+      - 'prologue-addon/**'
+      - '.github/workflows/prologue-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  prologue-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out prototype branch
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run prologue smoke tests
+        run: node --test prologue-addon/tests/prologue-smoke.test.mjs
