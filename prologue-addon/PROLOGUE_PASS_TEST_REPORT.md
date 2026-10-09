@@ -6,14 +6,14 @@
 
 ## Result summary
 
-- **Source-level checks performed in this session:** **13/13 PASS**
+- **Source-level checks performed in this session:** **14/14 PASS**
 - **Reproducible Node tests added to the repo:** 12
 - **GitHub Actions workflow:** added at .github/workflows/prologue-smoke.yml
 - **Live browser playthrough:** NOT RUN
 - **Physical Android/mobile playthrough:** NOT RUN
 - **30 FPS/performance measurement:** NOT RUN
 
-The 13 source-level checks passed against the latest code inspected during this session. The GitHub Actions workflow also completed successfully: run 37953652022 reported 12 tests passed and 0 failed, and run 37953687803 for the subsequent documentation update completed successfully. These results do not imply that the game has been completed in a browser.
+The 14 source-level checks passed against the latest code inspected during this session. The latest GitHub Actions run, [37953936894](https://github.com/MythrixorDev170/CEREBRAL-The-Last-Ascent/actions/runs/37953936894), reports 12 tests passed and 0 failed. One intermediate run failed due to a stale expectation about audio attenuation; this was corrected by scoping reduced-scare attenuation to authored scare cues and updating the test. These results do not imply that the game has been completed in a browser.
 
 ## Automated checks implemented
 
