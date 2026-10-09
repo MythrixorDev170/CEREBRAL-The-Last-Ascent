@@ -83,10 +83,27 @@ for(let x=-10.5;x<=10.5;x+=3.5){box(world,x,4.15,0,.18,.14,17,mats.metal);box(wo
 for(let z=-5;z<=5;z+=2.5){box(world,0,4.35,z,15,.16,.18,mats.metal)}
 // Exterior void/window wall and distant planet.
 box(world,0,2,-28,21,2,.18,mats.glass);const planet=new THREE.Mesh(new THREE.SphereGeometry(9,32,24),new THREE.MeshStandardMaterial({color:0x28445d,roughness:1,emissive:0x081521}));planet.position.set(27,2,-42);world.add(planet);const atm=new THREE.Mesh(new THREE.SphereGeometry(9.25,32,24),new THREE.MeshBasicMaterial({color:0x4c91c2,transparent:true,opacity:.09,side:THREE.BackSide}));atm.position.copy(planet.position);world.add(atm);
+// High-level load frames make the oversized hibernation bay and main spine read as a real vessel.
+for(const z of [-7,-3,1,5]){
+ for(const x of [-11.35,11.35]){
+  box(world,x,3.35,z,.24,6.55,.42,mats.metal);
+  box(world,x,6.45,z,.38,.18,.6,mats.yellow);
+ }
+ box(world,0,6.52,z,22.8,.26,.42,mats.dark);
+ box(world,0,6.36,z,20.6,.07,.16,mats.screen,{shadow:false});
+}
+for(const x of [-9.5,-6.5,-3.5,0,3.5,6.5,9.5]){
+ box(world,x,6.6,0,.14,.12,17,mats.metal);
+ box(world,x,6.42,0,.05,.04,17,mats.screen,{shadow:false});
+}
+for(let z=-12;z>=-30;z-=4){
+ box(world,0,6.53,z,34,.3,.54,mats.dark);
+ for(const x of [-16,-12,-8,-4,4,8,12,16])box(world,x,6.3,z,.15,.5,.2,mats.yellow);
+}
 // Medical pods, beds, cabinets, monitors, cables, debris, stains and vents.
 for(let z=-8;z<=8;z+=4){box(world,-11,2,z,.18,3,.18,mats.metal);box(world,11,2,z,.18,3,.18,mats.metal);box(world,0,3.65,z,22,.18,.18,mats.metal)}
 // Hangar scale dressing: tall cradle pylons, gantry beams, cable drops and deck guide lights.
-for(const x of [-10,-6,6,10]){box(world,x,2.7,-63,.5,5,.55,mats.metal,{solid:true});box(world,x,4.8,-63,1.4,.22,13,mats.yellow);box(world,x,4.25,-63,.1,.8,.1,mats.screen)}
+for(const x of [-10,-6,6,10]){box(world,x,3.15,-63,.5,6.2,.55,mats.metal,{solid:true});box(world,x,6.45,-63,1.4,.22,13,mats.yellow);box(world,x,5.72,-63,.1,1.05,.1,mats.screen)}
 for(let z=-56;z>=-70;z-=2){box(world,-4,.015,z,.08,.02,.85,mats.screen,{shadow:false});box(world,4,.015,z,.08,.02,.85,mats.screen,{shadow:false})}
 for(let i=0;i<18;i++){const x=(i%6-2.5)*2.8,z=-57-Math.floor(i/6)*5;box(world,x,.18,z,.35,.35,.5,i%4===0?mats.yellow:mats.dark,{shadow:false})}
 // Additional authored ship-scale surface detail and damaged equipment clusters.
@@ -134,7 +151,7 @@ box(world,-7,2,-61,.22,4,11,mats.metal);box(world,7,2,-61,.22,4,11,mats.metal);f
 const ship=new THREE.Group();ship.position.set(0,1.1,-64);world.add(ship);const shipMat=new THREE.MeshStandardMaterial({color:0x566b76,metalness:.8,roughness:.35});
 const hull=new THREE.Mesh(new THREE.ConeGeometry(1.15,6,6),shipMat);hull.rotation.x=-Math.PI/2;hull.rotation.z=Math.PI;hull.position.z=-1;ship.add(hull);box(ship,0,-.1,.4,2.2,.55,3,shipMat);box(ship,-1.5,-.12,1,1.5,.18,2.1,mats.metal);box(ship,1.5,-.12,1,1.5,.18,2.1,mats.metal);box(ship,0,.25,1.6,1.2,.18,.8,mats.glass);for(let x of [-.6,.6]){const glow=new THREE.Mesh(new THREE.SphereGeometry(.16,10,8),new THREE.MeshBasicMaterial({color:0x45d8ff}));glow.position.set(x,0,2.4);ship.add(glow);light(x,0,2.5,0x35cfff,.8,4,ship)}
 // Overhead conduits throughout.
-for(let z=-4;z>=-62;z-=4){cyl(world,-5,2.7,z,.08,.08,8,mats.metal,8).rotation.x=Math.PI/2;cyl(world,5,2.72,z,.06,.06,8,mats.yellow,8).rotation.x=Math.PI/2}
+for(let z=-4;z>=-62;z-=4){cyl(world,-5,2.7,z,.08,.08,8,mats.metal,8).rotation.x=Math.PI/2;cyl(world,5,2.72,z,.06,.06,8,mats.yellow,8).rotation.x=Math.PI/2}for(let z=-4;z>=-62;z-=8){cyl(world,-8,6.05,z,.09,.09,8,mats.metal,8).rotation.x=Math.PI/2;cyl(world,8,6.05,z,.07,.07,8,mats.yellow,8).rotation.x=Math.PI/2}
 // Fine dust in the low-light air; deterministic placement and low overdraw, drifting slowly through light cones.
 const dustGeo=new THREE.BufferGeometry(),dustPos=[],dustDrift=[];
 for(let i=0;i<280;i++){dustPos.push(((i*17)%46)-23,.25+((i*23)%44)/10,-70+((i*31)%70));dustDrift.push(.12+((i*7)%13)/100)}
