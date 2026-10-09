@@ -170,30 +170,30 @@ for(const z of [-6,-12,-27]){box(world,0,4.72,z,3.4,.16,.42,mats.yellow);light(0
 function annexRoom(cx,cz,w,d,name,accent,insideSide,observation){
  const g=new THREE.Group();g.position.set(cx,0,cz);world.add(g);
  box(g,0,-.15,0,w,.3,d,mats.floor,{solid:true});
- box(g,0,4.92,0,w,.18,d,mats.dark);
- box(g,0,2.35,-d/2,w,4.7,.22,mats.wall,{solid:true});
- box(g,0,2.35,d/2,w,4.7,.22,mats.wall,{solid:true});
+ box(g,0,6.47,0,w,.18,d,mats.dark);
+ box(g,0,3.15,-d/2,w,6.3,.22,mats.wall,{solid:true});
+ box(g,0,3.15,d/2,w,6.3,.22,mats.wall,{solid:true});
  const gap=4.2,seg=(d-gap)/2;
  for(const side of [-1,1]){
   const x=side*w/2;
   if(side===insideSide){
-   box(g,x,2.35,-(d+gap)/4,.22,4.7,seg,mats.wall,{solid:true});
-   box(g,x,2.35,(d+gap)/4,.22,4.7,seg,mats.wall,{solid:true});
-   box(g,x,4.15,0,.24,1.1,gap,mats.wall,{solid:true});
+   box(g,x,3.15,-(d+gap)/4,.22,6.3,seg,mats.wall,{solid:true});
+   box(g,x,3.15,(d+gap)/4,.22,6.3,seg,mats.wall,{solid:true});
+   box(g,x,5.75,0,.24,1.1,gap,mats.wall,{solid:true});
   }else if(observation&&side===1){
    box(g,x,.72,0,.18,1.44,d,mats.dark,{solid:true});
-   box(g,x,4.28,0,.18,.86,d,mats.wall,{solid:true});
+   box(g,x,5.72,0,.18,1.16,d,mats.wall,{solid:true});
    for(const z of [-9,-3,3,9]){
-    box(g,x,2.42,z,.14,2.86,4.8,mats.glass,{solid:true});
-    box(g,x-.035,2.42,z-2.43,.1,2.96,.12,mats.metal);
-    box(g,x-.035,2.42,z+2.43,.1,2.96,.12,mats.metal);
+    box(g,x,3.22,z,.14,3.5,4.8,mats.glass,{solid:true});
+    box(g,x-.035,3.22,z-2.43,.1,3.62,.12,mats.metal);
+    box(g,x-.035,3.22,z+2.43,.1,3.62,.12,mats.metal);
    }
-  }else box(g,x,2.35,0,.22,4.7,d,mats.wall,{solid:true});
-  for(let z=-d/2+1.2;z<d/2;z+=3.8){if(!(side===insideSide&&Math.abs(z)<2.5))box(g,x-side*.08,2.25,z,.12,4.35,.1,mats.metal)}
+  }else box(g,x,3.15,0,.22,6.3,d,mats.wall,{solid:true});
+  for(let z=-d/2+1.2;z<d/2;z+=3.8){if(!(side===insideSide&&Math.abs(z)<2.5))box(g,x-side*.08,3.0,z,.12,5.85,.1,mats.metal)}
  }
  const annexFixture=box(g,0,4.63,0,Math.min(w-1,6),.08,.18,new THREE.MeshStandardMaterial({color:accent,emissive:accent,emissiveIntensity:1.4}));areaFixtures.push({mesh:annexFixture,base:1.4});
- const annexLamp=light(cx,3.7,cz,accent,1.15,Math.max(w,d)*1.25);areaLights.push({lamp:annexLamp,base:1.15});
- for(let x=-w/2+1.3;x<w/2;x+=4.3)box(g,x,4.54,0,.08,.08,d*.82,mats.metal);
+ const annexLamp=light(cx,5.05,cz,accent,1.15,Math.max(w,d)*1.25);areaLights.push({lamp:annexLamp,base:1.15});
+ for(let x=-w/2+1.3;x<w/2;x+=4.3)box(g,x,6.12,0,.08,.08,d*.82,mats.metal);
  label(name,cx-w*.34,3.72,cz-d/2+.35,'#a8eaf5');
  return g;
 }
@@ -223,7 +223,7 @@ for(const z of [-27,-20,-13]){
  box(world,-38,.74,z,3.4,.12,1.25,mats.metal,{solid:true});
  for(const x of [-39.2,-38,-36.8])box(world,x,.91,z,.05,.28,.05,mats.yellow);
 }
-for(let x=-47;x<=-29;x+=3){box(world,x,4.4,-20,.09,.09,21,mats.metal);box(world,x,4.27,-20,.045,.04,21,mats.screen)}
+for(let x=-47;x<=-29;x+=3){box(world,x,6.05,-20,.09,.09,21,mats.metal);box(world,x,5.83,-20,.045,.04,21,mats.screen)}
 box(world,-29,.5,-17,1.1,.9,.55,mats.dark,{solid:true});
 box(world,-29,1.0,-17,.65,.08,.42,mats.red);
 box(world,-34,.04,-24,1.1,.035,.7,mats.blood,{shadow:false});
