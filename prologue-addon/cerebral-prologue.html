@@ -251,7 +251,7 @@ for(let z=-30;z<=-10;z+=2.5){
  box(world,47.35,.025,z,.08,.035,1.4,mats.screen,{shadow:false});
  box(world,27.65,.025,z,.08,.035,1.4,mats.screen,{shadow:false});
 }
-const starGeo=new THREE.SphereGeometry(1,5,4),starMat=new THREE.MeshBasicMaterial({color:0xc2e6ff}),starField=new THREE.InstancedMesh(starGeo,starMat,60),starDummy=new THREE.Object3D();
+const farStarGeo=new THREE.SphereGeometry(1,5,4),starMat=new THREE.MeshBasicMaterial({color:0xc2e6ff}),starField=new THREE.InstancedMesh(farStarGeo,starMat,60),starDummy=new THREE.Object3D();
 for(let i=0;i<60;i++){
  const x=51+(i*17)%27,y=-5+((i*23)%22),z=-42+((i*13)%34),r=.035+(i%3)*.018;
  starDummy.position.set(x,y,z);starDummy.scale.setScalar(r);starDummy.updateMatrix();starField.setMatrixAt(i,starDummy.matrix);
