@@ -16,7 +16,7 @@ Run through a **same-origin static server** for the campaign handoff. After the 
 
 ## Implemented route
 
-1. Wake and manually release Hibernation Unit 07.
+1. Tap Begin Recovery; Unit 07's hatch releases automatically, so the player is never stuck waiting for a wake prompt.
 2. Use the neural stabilizer and recover the medical access chip.
 3. Enter the central space deck and move through the ship's opened bulkheads.
 4. Restore the grid by activating **three separate power nodes** in Maintenance and Research. The loud grid restore can attract a nearby security robot.
@@ -31,9 +31,9 @@ Five optional memory fragments add story context. Cerebral has no visible charac
 ## Systems in the prototype
 
 - Animated 3D title camera; extended multi-zone vessel layout with connected crew-habitat and panoramic observation-gallery wings; stacked bunks, lockers, survey consoles, a first-person Unit 07 viewport and animated release hatch, 7.2m hibernation/central/hangar spaces, 6.4m annexes, tall structural ribs and ceiling gantries, bulkhead frames, distant planet/moon, procedural panel/floor textures, a batched starfield, deterministic debris, crew traces, broken utility frames, dust and restrained steam sprites.
-- Smooth first-person movement with acceleration/deceleration, a brisk non-sprint walk, stamina-limited sprint with recovery, crouch, modest head bob/FOV response, camera-height control, player/wall/door collision, contextual line-of-sight interactions and an objective waypoint with bearing and distance.
-- Touch joystick plus a dedicated right-side drag-look zone (independent from movement), an explicit wake/release button, Interact/Hide, decoy, breath control, crouch, stamina-limited sprint and pause controls on coarse-pointer devices. Touch controls use pointer capture and reset sprint/crouch/breath state on release/cancel.
-- Muted industrial-horror HUD (less neon/cyberpunk styling), heart rate/breath/noise/neural-stability and stamina meters, controlled breathing while hidden, a short proximity heartbeat effect, low-intensity stress blur and recoverable checkpoints.
+- Smooth first-person movement with acceleration/deceleration, normal walking, a faster walk toggle (`V` / FAST WALK touch button), stamina-limited sprint with delayed recovery, crouch, non-accumulating head bob/lean and FOV response, camera-height control, player/wall/door collision, contextual line-of-sight interactions and an objective waypoint with bearing and distance.
+- Touch joystick plus a dedicated right-side drag-look zone (independent from movement), Interact/Hide, fast-walk toggle, decoy, breath control, crouch, stamina-limited sprint and pause controls on coarse-pointer devices. Begin Recovery releases the pod automatically; look drag no longer competes with joystick input. Touch controls use pointer capture and reset sprint/crouch/breath state on release/cancel.
+- Muted industrial-horror HUD (less neon/cyberpunk styling), heart rate/breath/noise/neural-stability and stamina meters, controlled breathing while hidden, a short proximity heartbeat effect, vignette-based stress feedback (no full-frame CSS blur on mobile) and recoverable checkpoints.
 - Three procedural security robots: two patrol/hunt units and a heavy central-deck frame that remains dark until facility power is restored. Behavior includes forward-cone vision, darker-area/crouch visibility reductions, structural occlusion, footstep/power/decoy sound investigation, navigation through a simple authored waypoint graph, last-known-position searches, coordinated alerting and a short pursuit state. Robots can lose the player; this is not a full navmesh or behavior-tree AI implementation.
 - Thrown metal decoys, a mandatory three-step lab terminal puzzle, room-specific footstep tones, panned/occluded synthetic threat tones, emergency red strobes, grid-linked fading room lights and scripted one-shot environmental cues.
 - Automatic launch handoff to the original game HTML. No flight mechanics, weapons, targeting, HUD, mission logic or save format have been copied or modified in this prelude.
@@ -42,7 +42,7 @@ Five optional memory fragments add story context. Cerebral has no visible charac
 
 This is still a **procedural vertical slice**, not the finished 12–18-minute jam release. Room surfaces, most props, robot models and environmental stains are primitive/generated assets. Audio is browser TTS plus synthesized ambience/tones, not recorded actors or a fully spatial/occluded sound library. Collision covers architectural walls, bulkheads, the annex windows and selected large objects, not every small piece of dressing. Robot navigation is a small waypoint graph and can still make imperfect search decisions. The duration has not yet been measured from a real playthrough.
 
-Mobile performance settings now reduce pixel ratio and disable real-time shadow maps on coarse-pointer devices; desktop retains the higher pixel-ratio cap and shadows. **The latest touch/movement/HUD edits have not yet been verified in a live browser.** Wake interaction, touch look, stamina drain/recovery, quest completion, collision edge cases, speech synthesis, iframe handoff, mobile/Safari behavior and actual frame rate all still require hands-on testing. Do not treat a static parse as a game-play test.
+Mobile performance settings reduce pixel ratio, disable antialiasing and real-time shadow maps on coarse-pointer devices, cache repeated box/cylinder geometry, reuse collision raycast lists, and avoid full-frame CSS blur; desktop retains the higher pixel-ratio cap and shadows. **The latest edits have passed a JavaScript syntax check, but have not yet been verified in a live browser or on a physical phone.** Touch look, sprint stamina, quest completion, collision edge cases, speech synthesis, iframe handoff, mobile/Safari behavior and actual frame rate still need hands-on testing. Do not treat a static parse as a game-play test.
 
 ## Protected source boundary
 
