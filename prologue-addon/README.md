@@ -1,6 +1,6 @@
 # CEREBRAL: THE LAST ASCENT — Horror Prologue Add-on
 
-This branch contains a larger first-person horror prelude that hands off to the original spacecraft campaign. The protected `pass-1` branch and the authoritative `cerebral.html` have not been modified.
+This branch contains a larger first-person horror prelude that hands off to the original spacecraft campaign. Recent work adds collision-backed crew-habitat and observation-gallery wings beyond the central deck. The protected `pass-1` branch and the authoritative `cerebral.html` have not been modified.
 
 ## Run
 
@@ -26,21 +26,21 @@ Run through a **same-origin static server** for the campaign handoff. After the 
 8. Reconnect the spacecraft cradle's power coupler.
 9. Enter the cockpit, watch the short in-engine launch, and transition into the original CEREBRAL campaign.
 
-Three optional memory fragments add story context. Cerebral has no visible character/model/face; lines are spoken with browser speech synthesis when available and are also shown as subtitles. This is a fallback implementation, not final recorded voice acting.
+Five optional memory fragments add story context. Cerebral has no visible character/model/face; lines are spoken with browser speech synthesis when available and are also shown as subtitles. This is a fallback implementation, not final recorded voice acting.
 
 ## Systems in the prototype
 
-- Animated 3D title camera, large multi-zone room layout, tall hibernation chamber ribs, overhead trusses, bulkhead frames, observation-window planet, procedural panel/floor textures, deterministic debris and stars, environmental blood/traces, broken utility robots, dust and subtle steam sprites.
+- Animated 3D title camera; extended multi-zone vessel layout with connected crew-habitat and panoramic observation-gallery wings; stacked bunks, lockers, survey consoles, tall hibernation-chamber ribs, overhead trusses, bulkhead frames, distant planet/moon, procedural panel/floor textures, a batched starfield, deterministic debris, crew traces, broken utility frames, dust and restrained steam sprites.
 - Smooth first-person movement, mouse look, sprint/crouch, modest head bob/FOV response, camera-height control, player/wall/door collision, contextual line-of-sight interactions and an objective waypoint with bearing and distance.
 - Touch joystick, touch drag-look, Interact/Hide, decoy, breath control, crouch, sprint and pause controls on coarse-pointer devices.
 - Heart rate/breath/noise/neural-stability feedback, controlled breathing while hidden, a short proximity heartbeat effect, low-intensity stress blur and recoverable checkpoints.
-- Two animated procedural robots. Their behavior includes forward-cone vision, darker-area/crouch visibility reductions, structural occlusion, footstep/power/decoy sound investigation, navigation through a simple authored waypoint graph, last-known-position searches, coordinated alerting and a short pursuit state. Robots can lose the player; this is not a full navmesh or behavior-tree AI implementation.
-- Thrown metal decoys, a mandatory three-step lab terminal puzzle, room-specific footstep tones, panned/occluded synthetic threat tones, emergency red strobes and scripted one-shot environmental cues.
+- Three procedural security robots: two patrol/hunt units and a heavy central-deck frame that remains dark until facility power is restored. Behavior includes forward-cone vision, darker-area/crouch visibility reductions, structural occlusion, footstep/power/decoy sound investigation, navigation through a simple authored waypoint graph, last-known-position searches, coordinated alerting and a short pursuit state. Robots can lose the player; this is not a full navmesh or behavior-tree AI implementation.
+- Thrown metal decoys, a mandatory three-step lab terminal puzzle, room-specific footstep tones, panned/occluded synthetic threat tones, emergency red strobes, grid-linked fading room lights and scripted one-shot environmental cues.
 - Automatic launch handoff to the original game HTML. No flight mechanics, weapons, targeting, HUD, mission logic or save format have been copied or modified in this prelude.
 
 ## Known limits
 
-This is still a **procedural vertical slice**, not the finished 12–18-minute jam release. Room surfaces, most props, robot models and environmental stains are primitive/generated assets. Audio is browser TTS plus synthesized ambience/tones, not recorded actors or a fully spatial/occluded sound library. Collision covers architectural walls, bulkheads and selected large objects, not every small piece of dressing. Robot navigation is a small waypoint graph and can still make imperfect search decisions. The duration has not yet been measured from a real playthrough.
+This is still a **procedural vertical slice**, not the finished 12–18-minute jam release. Room surfaces, most props, robot models and environmental stains are primitive/generated assets. Audio is browser TTS plus synthesized ambience/tones, not recorded actors or a fully spatial/occluded sound library. Collision covers architectural walls, bulkheads, the annex windows and selected large objects, not every small piece of dressing. Robot navigation is a small waypoint graph and can still make imperfect search decisions. The duration has not yet been measured from a real playthrough.
 
 The inline module passed a JavaScript syntax-compilation check and its referenced DOM IDs resolve statically. **Browser runtime, quest completion, collision edge cases, touchscreen use, speech synthesis, iframe handoff, mobile/Safari behavior and performance still require hands-on testing.** Do not treat a static parse as a game-play test.
 
