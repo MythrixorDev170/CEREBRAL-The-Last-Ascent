@@ -39,11 +39,14 @@ function room(cx,cz,w,d,name,accent=0x57d8e8){
  box(g,0,height-.12,-d/2,w,.25,.25,mats.metal);
  const side=(x,sign)=>{
   if(cx===0&&w===36&&d===24){
-   const gap=4.2,seg=(d-gap)/2;
-   box(g,x,wallY,-(d+gap)/4,.22,wallH,seg,mats.wall,{solid:true});
-   box(g,x,wallY,(d+gap)/4,.22,wallH,seg,mats.wall,{solid:true});
-   box(g,x,height-.7,0,.24,1.1,gap,mats.wall,{solid:true});
-   box(g,x,0,0,.24,.12,gap,mats.yellow);
+   // Two portals per side: one aligns with the annexes at local z=0,
+   // the second aligns with the Maintenance/Research junction at local z=-9.
+   const gap=4.2,spans=[[-d/2,-9-gap/2],[-9+gap/2,-gap/2],[gap/2,d/2]];
+   for(const [lo,hi] of spans)if(hi>lo)box(g,x,wallY,(lo+hi)/2,.22,wallH,hi-lo,mats.wall,{solid:true});
+   for(const zc of [-9,0]){
+    box(g,x,height-.7,zc,.24,1.1,gap,mats.wall,{solid:true});
+    box(g,x,0,zc,.24,.12,gap,mats.yellow);
+   }
   }else if(((cx===-15||cx===-14)&&sign===1)||(cx===15&&sign===-1)){
    const gap=3.4,seg=Math.max(1,(d-gap)/2);
    box(g,x,wallY,-(d+gap)/4,.22,wallH,seg,mats.wall,{solid:true});
