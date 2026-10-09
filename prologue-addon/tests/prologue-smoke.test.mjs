@@ -105,3 +105,14 @@ test('browser preferences degrade safely when local storage or audio is unavaila
   assert.ok(js.includes('try{localStorage.setItem'), 'Settings save should be guarded');
   assert.ok(js.includes('if(audioCtx&&master)'), 'Audio setting application should tolerate missing Web Audio');
 });
+
+test('pod wake is gated by the documented 2187 magnetic lock', () => {
+  for (const id of ['podLockPanel', 'podCodeDisplay', 'podKeypad', 'podReadChart', 'podChartClue', 'podEnter', 'podClear', 'podLater']) {
+    assert.ok(html.includes('id="' + id + '"'), 'Missing pod-lock element: ' + id);
+  }
+  assert.ok(html.includes('>2187</strong>'), 'Departure-year clue must be available in the wall-chart readout');
+  assert.ok(js.includes("if(podCodeBuffer==='2187')"), 'Only the intended four-digit code should release the pod');
+  assert.ok(js.includes("if(a==='wake'&&step===0){openPodLock();return}"), 'Desktop interaction must open the lock instead of releasing immediately');
+  assert.ok(js.includes("if(wake){interact(wake)}else{openPodLock()}"), 'Mobile fallback must not bypass the lock');
+  assert.ok(js.includes("if(!started||paused||launch||podLockOpen)return"), 'Gameplay updates should pause while the keypad is open');
+});
