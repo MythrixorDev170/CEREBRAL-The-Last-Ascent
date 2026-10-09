@@ -1,49 +1,49 @@
 # CEREBRAL: THE LAST ASCENT — Horror Prologue Add-on
 
-This branch contains an expanded first-person prologue prototype that hands off to the existing spacecraft campaign. It remains isolated from the protected game source.
+This branch contains a larger first-person horror prelude that hands off to the original spacecraft campaign. The protected `pass-1` branch and the authoritative `cerebral.html` have not been modified.
 
-## Run it locally
+## Run
 
-From the repository root, start a static server:
+From the repository root:
 
 ```bash
 python -m http.server 8000
 ```
 
-Open `http://localhost:8000/prologue-addon/cerebral-prologue.html`. The page imports Three.js from jsDelivr, so an internet connection is required.
+Open `http://localhost:8000/prologue-addon/cerebral-prologue.html`. Three.js is imported from jsDelivr, so an internet connection is required.
 
-**Use a same-origin static server for the launch handoff.** At the end of the prologue, the page loads the repository's existing `../cerebral.html` into a full-screen frame. If no campaign save exists, it selects New Game and begins the original game's first mission. If saves exist, it leaves the original campaign menu open so the player can choose Continue, Load, or New Game without silently overwriting a save.
+Run through a **same-origin static server** for the campaign handoff. After the in-engine launch, the prelude loads the repository's original `../cerebral.html` in a full-screen frame. When no campaign save exists, it chooses New Game and starts the original first mission. When saves exist, it leaves the original game's menu available and asks the player to choose Continue/Load/New Game. Existing save data is not overwritten by the prelude.
 
-## Prologue flow now in code
+## Implemented route
 
-1. Wake and manually release Hibernation Unit 07 in a larger, high-ceiling hibernation chamber.
-2. Recover the neural stabilizer and medical access chip.
-3. Enter the central deck and explore the connected vessel wings.
-4. Restore facility power by routing **three separate nodes** across Maintenance and Research.
-5. Recover the research archive, then the crew recording in Communications.
-6. Reach Security, override the hangar lockdown, release the ship and enter the cockpit.
-7. Watch the short in-engine launch transition, then continue into the existing CEREBRAL campaign.
+1. Wake and manually release Hibernation Unit 07.
+2. Use the neural stabilizer and recover the medical access chip.
+3. Enter the central space deck and move through the ship's opened bulkheads.
+4. Restore the grid by activating **three separate power nodes** in Maintenance and Research. The loud grid restore can attract a nearby security robot.
+5. Complete the Research containment sequence in order: **ISOLATE → VERIFY → PURGE**, then access the encrypted archive.
+6. Recover the crew recording in Communications, then use the Security override.
+7. Release the hangar lockdown.
+8. Reconnect the spacecraft cradle's power coupler.
+9. Enter the cockpit, watch the short in-engine launch, and transition into the original CEREBRAL campaign.
 
-Three optional memory fragments provide extra story context without blocking the main route. Cerebral remains a voice/caption only; this build contains no visible Cerebral character, model, or face.
+Three optional memory fragments add story context. Cerebral has no visible character/model/face; lines are spoken with browser speech synthesis when available and are also shown as subtitles. This is a fallback implementation, not final recorded voice acting.
 
-## Current systems
+## Systems in the prototype
 
-- Enlarged room proportions, tall chamber ribs and trusses, deterministic stars/debris placement, procedural panel/floor textures, hangar cradle dressing, wrecked utility robots and environmental clues.
-- Keyboard/mouse first-person movement with acceleration/deceleration, sprint and crouch; touch joystick, drag-look, interact, decoy, breath, crouch and sprint controls on coarse-pointer devices.
-- Structural room/corridor/door collision, door collision while shut, interaction line-of-sight checks, milestone checkpoints and local recovery after a capture.
-- Robot vision-cone checks, structural occlusion, shorter detection range while crouched, sound investigation, last-known-position search, pursuit and fair hidden-state loss. The robots are still a lightweight prototype AI, not a full navigation-mesh implementation.
-- Heart-rate, breathing, noise and neural-stability HUD; controlled breathing while hidden; thrown metal decoys and loud power routing to draw a search toward the last sound location.
-- Authored one-shot central-deck and Communications cues. Random scare rolls have been removed; remaining procedural geometry placement is deterministic.
-- Three relay interactions, security/recording gating, optional memory pickups and a ship-launch handoff into the actual campaign HTML.
+- Animated 3D title camera, large multi-zone room layout, tall hibernation chamber ribs, overhead trusses, bulkhead frames, observation-window planet, procedural panel/floor textures, deterministic debris and stars, environmental blood/traces, broken utility robots, dust and subtle steam sprites.
+- Smooth first-person movement, mouse look, sprint/crouch, modest head bob/FOV response, camera-height control, player/wall/door collision, contextual line-of-sight interactions and an objective waypoint with bearing and distance.
+- Touch joystick, touch drag-look, Interact/Hide, decoy, breath control, crouch, sprint and pause controls on coarse-pointer devices.
+- Heart rate/breath/noise/neural-stability feedback, controlled breathing while hidden, a short proximity heartbeat effect, low-intensity stress blur and recoverable checkpoints.
+- Two animated procedural robots. Their behavior includes forward-cone vision, darker-area/crouch visibility reductions, structural occlusion, footstep/power/decoy sound investigation, navigation through a simple authored waypoint graph, last-known-position searches, coordinated alerting and a short pursuit state. Robots can lose the player; this is not a full navmesh or behavior-tree AI implementation.
+- Thrown metal decoys, a mandatory three-step lab terminal puzzle, room-specific footstep tones, panned/occluded synthetic threat tones, emergency red strobes and scripted one-shot environmental cues.
+- Automatic launch handoff to the original game HTML. No flight mechanics, weapons, targeting, HUD, mission logic or save format have been copied or modified in this prelude.
 
-## Important limits
+## Known limits
 
-This is still a procedural vertical-slice implementation, not the finished 12–18-minute jam release. Models, surfaces, decals and audio are mostly generated placeholders; the current audio is synthesized tones/ambience rather than recorded, spatially occluded voice and sound assets. Collision covers structural geometry and selected large props rather than every small prop. Robot navigation is deliberately simple, and the full run time, difficulty curve and route have not been measured in a browser playthrough.
+This is still a **procedural vertical slice**, not the finished 12–18-minute jam release. Room surfaces, most props, robot models and environmental stains are primitive/generated assets. Audio is browser TTS plus synthesized ambience/tones, not recorded actors or a fully spatial/occluded sound library. Collision covers architectural walls, bulkheads and selected large objects, not every small piece of dressing. Robot navigation is a small waypoint graph and can still make imperfect search decisions. The duration has not yet been measured from a real playthrough.
 
-The prototype's JavaScript module body passes a syntax compilation check and its static DOM references resolve, but browser runtime, the full end-to-end quest, iframe handoff, mobile touch behavior, real-device performance and audio still need hands-on testing. Do not call the prototype fully tested until those checks have actually been run.
+The inline module passed a JavaScript syntax-compilation check and its referenced DOM IDs resolve statically. **Browser runtime, quest completion, collision edge cases, touchscreen use, speech synthesis, iframe handoff, mobile/Safari behavior and performance still require hands-on testing.** Do not treat a static parse as a game-play test.
 
 ## Protected source boundary
 
-`cerebral.html` is intentionally unchanged on this branch and has the same blob SHA as `pass-1`. The prologue's launch handoff opens that original file rather than duplicating or rewriting its ship, flight physics, save schema, HUD, targeting, weapons or campaign state.
-
-Claude's integration task is to continue from this implementation—not to recreate it from scratch—then test the full prologue and existing regression suites before merging any isolated prelude hook. Do not change the protected `pass-1` branch.
+`cerebral.html` is byte-for-byte unchanged on this branch compared with `pass-1`. The prologue is deliberately an add-on that loads the original campaign rather than replacing it. Continue from this implementation—do not recreate it from scratch—and test the whole route before merging an integration hook. Never edit the protected `pass-1` branch directly.
